@@ -172,7 +172,7 @@ class Engine(object):
             dont_log_wandb = self.config.dont_log_wandb
             wandb_mode = "online" if not dont_log_wandb else "disabled"
 
-            wandb_name = self.task_name[task_id] + '_' + self.config.prompt_name + '_' + str(self.config.encoder) + '_' + str(self.config.decoder) + '_mobilevlm_mask2former_batch' + str(self.args.batch_size) + '_query16_' + str(self.args.lr_max) + '_' + str(self.args.lr_prompt_max) + '_' + self.task_name[0] + '_' + self.task_name[1] + '_' + self.task_name[2]
+            wandb_name = self.task_name[task_id] + '_' + self.config.prompt_name + '_' + str(self.config.encoder) + '_' + str(self.config.decoder) + '_mask2former_batch' + str(self.args.batch_size) + '_query16_' + str(self.args.lr_max) + '_' + str(self.args.lr_prompt_max) + '_' + self.task_name[0] + '_' + self.task_name[1] + '_' + self.task_name[2]
             wandb.init(
             project = self.config.project,
             group = self.config.wandb_group,
@@ -193,8 +193,10 @@ class Engine(object):
                             self.model.prompt.process_task_count()
                     
                     for n, p in self.model.named_parameters():
+                        # for MobileVLA #
                         if self.args.vlm_freeze in n:
                             p.requires_grad = False
+                        # for GPTVLA #
                         if self.args.encoder_freeze in n:
                             p.requires_grad = False
                         if self.args.decoder_freeze in n:
@@ -204,10 +206,12 @@ class Engine(object):
                 else:
                     
                     for n, p in self.model.named_parameters():
+                        # for MobileVLA & GPTVLA #
+                        if self.args.llm_freeze in n:
+                            p.requires_grad = False
+                        # for GPTVLA #
                         if self.args.encoder_freeze in n:
                             p.requires_grad = False
-                        if self.args.llm_freeze in n:
-                            p.requires_grad = False 
                         if p.requires_grad == True:
                             print(n)
             else:
@@ -238,7 +242,7 @@ class Engine(object):
             if train:
                 
                 folder_name = self.config.prompt_name + '_' + self.config.encoder\
-                                   + '_' + self.config.decoder + '_seed' + str(self.args.seed) + '_mobilevlm_mask2former_batch' + str(self.args.batch_size) + '_' + self.task_name[0] + '_' + self.task_name[1] + '_' + self.task_name[2] + '_' + str(self.args.lr_max) + '_' + str(self.args.lr_prompt_max) + '_' + str(now.year) + str(now.month) + str(now.day) + str(now.hour) + str(now.minute) + str(now.second)
+                                   + '_' + self.config.decoder + '_seed' + str(self.args.seed) + '_mask2former_batch' + str(self.args.batch_size) + '_' + self.task_name[0] + '_' + self.task_name[1] + '_' + self.task_name[2] + '_' + str(self.args.lr_max) + '_' + str(self.args.lr_prompt_max) + '_' + str(now.year) + str(now.month) + str(now.day) + str(now.hour) + str(now.minute) + str(now.second)
                 output_dir = os.path.join(self.args.output_dir, folder_name)
                 
                 logdir = os.path.join(self.args.logdir, self.task_name[task_id], folder_name)

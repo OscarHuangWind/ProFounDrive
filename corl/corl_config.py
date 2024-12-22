@@ -90,13 +90,15 @@ class GlobalConfig:
 
     ## wandb parameters
     dont_log_wandb = True
-    project = "ProFounDrive-mobilevla"
-    wandb_group = "MobileVLA"
+    project = "ProFounDrive-gptvla"
+    wandb_group = "GPTVLA"
 
-    # # Domian Randomization
-    # augment = True
-    # inv_augment_prob = 0.1 # Probablity that data augmentation is applied is 1.0 - inv_augment_prob
-    # aug_max_rotation = 20 # degree
+    # Domian Randomization
+    scale = 1 # image pre-processing
+    img_width = 320 # important this should be consistent with scale, e.g. scale = 1, img_width 320, scale=2, image_width 640
+    augment = True
+    inv_augment_prob = 0.1 # Probablity that data augmentation is applied is 1.0 - inv_augment_prob
+    aug_max_rotation = 20 # degree
     
     # Controller
     turn_KP = 1.25
