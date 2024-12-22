@@ -1,0 +1,352 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Mar 17 20:36:39 2024
+
+@author: oscar
+"""
+
+import torch
+import torch.nn as nn
+
+import copy
+import numpy as np
+
+class DrivePrompt(nn.Module):
+    def __init__(self, emb_d, n_tasks, prompt_param, key_dim=768, mode='', device='cuda:0'):
+        super().__init__()
+        self.task_count = -1
+        self.emb_d = emb_d
+        self.value_d = key_dim
+        self.n_tasks = n_tasks
+        self._init_smart(emb_d, prompt_param)
+        self.attend = nn.Softmax(dim = -1)
+        self.prompt_criterion = torch.nn.CrossEntropyLoss()
+        self.global_p = None
+        self.mode = mode
+        
+        self.prompt_adapter = torch.nn.Linear(self.emb_d, self.value_d)
+        
+        if self.mode == 'onboard':
+            self.attend.to(torch.bfloat16)
+            self.prompt_adapter.to(torch.bfloat16)
+        
+        for e in self.e_layers:
+            e_l = self.e_p_length
+            p = tensor_prompt(self.e_pool_size, e_l, self.emb_d, device=device)
+            local_k = tensor_prompt(self.e_pool_size, self.emb_d, device=device)
+            global_k = tensor_prompt(self.n_tasks, self.emb_d, device=device)
+            
+            p = self.gram_schmidt(p)
+            local_k = self.gram_schmidt(local_k)
+            global_k = self.gram_schmidt_global(global_k)
+
+            if self.mode == 'onboard':
+                p = p.to(torch.bfloat16)
+                local_k = local_k.to(torch.bfloat16)
+                global_k = global_k.to(torch.bfloat16)
+
+            setattr(self, f'e_p_{e}', p)
+            setattr(self, f'e_lk_{e}', local_k)
+            setattr(self, f'e_gk_{e}', global_k)
+
+        self.process_task_count()
+
+    def prompt_loss(self, prediction, target):
+        loss = self.prompt_criterion(prediction, target)
+        return loss
+
+    def ortho_penalty(self, t):
+        return ((t @t.T - torch.eye(t.shape[0]).cuda())**2).mean()
+
+    def _init_smart(self, emb_d, prompt_param):
+        self.name = 'corl'
+        
+        # prompt basic param
+        self.e_pool_size = int(prompt_param[0])
+        self.e_p_length = int(prompt_param[1])
+        self.e_layers = np.arange(0, 49).tolist()
+
+        self.top_k = prompt_param[-2]
+        self.attended_p = prompt_param[-1]
+        
+    def process_task_count(self):
+
+        self.task_count += 1
+
+        for e in self.e_layers:
+            local_K = getattr(self,f'e_lk_{e}')
+            global_K = getattr(self,f'e_gk_{e}')
+
+            local_k = self.gram_schmidt(local_K)
+            global_k = self.gram_schmidt_global(global_K)
+            
+            P = getattr(self,f'e_p_{e}')
+            p = self.gram_schmidt(P)
+            
+            if self.mode == 'onboard':
+                p = p.to(torch.bfloat16)
+                local_k = local_k.to(torch.bfloat16)
+                global_k = global_k.to(torch.bfloat16)
+            
+            setattr(self, f'e_p_{e}',p)
+            setattr(self, f'e_lk_{e}',local_k)
+            setattr(self, f'e_gk_{e}',global_k)
+
+    def gram_schmidt(self, vv):
+
+        def projection(u, v):
+            denominator = (u * u).sum()
+
+            if denominator < 1e-8:
+                return None
+            else:
+                return (v * u).sum() / denominator * u
+
+        # check if the tensor is 3D and flatten the last two dimensions if necessary
+        is_3d = len(vv.shape) == 3
+        if is_3d:
+            shape_2d = copy.deepcopy(vv.shape)
+            vv = vv.view(vv.shape[0],-1)
+
+        # swap rows and columns
+        vv = vv.T
+
+        # process matrix size
+        nk = vv.size(1)
+        uu = torch.zeros_like(vv, device=vv.device)
+
+        # get starting point
+        pt = int(self.e_pool_size / (self.n_tasks))
+
+        if self.task_count < 0:
+            s = int(0 * pt)
+            f = int((0 + 1) * pt)
+        else:
+            s = int(self.task_count * pt)
+            f = int((self.task_count + 1) * pt)
+
+        if s > 0:
+            uu[:, 0:s] = vv[:, 0:s].clone()
+        for k in range(s, f):
+            redo = True
+            while redo:
+                redo = False
+                vk = torch.randn_like(vv[:,k]).to(vv.device)
+                uk = 0
+                for j in range(0, k):
+                    if not redo:
+                        uj = uu[:, j].clone()
+                        proj = projection(uj, vk)
+                        if proj is None:
+                            redo = True
+                            print('restarting!!!')
+                        else:
+                            uk = uk + proj
+                if not redo: uu[:, k] = vk - uk
+        for k in range(s, f):
+            uk = uu[:, k].clone()
+            uu[:, k] = uk / (uk.norm())
+
+        # undo swapping of rows and columns
+        uu = uu.T 
+
+        # return from 2D
+        if is_3d:
+            uu = uu.view(shape_2d)
+        
+        return torch.nn.Parameter(uu) 
+
+    def gram_schmidt_global(self, vv):
+
+        def projection(u, v):
+            denominator = (u * u).sum()
+
+            if denominator < 1e-8:
+                return None
+            else:
+                return (v * u).sum() / denominator * u
+
+        # check if the tensor is 3D and flatten the last two dimensions if necessary
+        is_3d = len(vv.shape) == 3
+        if is_3d:
+            shape_2d = copy.deepcopy(vv.shape)
+            vv = vv.view(vv.shape[0],-1)
+
+        # swap rows and columns
+        vv = vv.T
+
+        # process matrix size
+        nk = vv.size(1)
+        uu = torch.zeros_like(vv, device=vv.device)
+
+        # get starting point
+        pt = int(self.e_pool_size / (self.n_tasks))
+        s = 0 #int(self.task_count * pt)
+        f = self.n_tasks #int((self.task_count + 1) * pt)
+        if s > 0:
+            uu[:, 0:s] = vv[:, 0:s].clone()
+        for k in range(s, f):
+            redo = True
+            while redo:
+                redo = False
+                vk = torch.randn_like(vv[:,k]).to(vv.device)
+                uk = 0
+                for j in range(0, k):
+                    if not redo:
+                        uj = uu[:, j].clone()
+                        proj = projection(uj, vk)
+                        if proj is None:
+                            redo = True
+                            print('restarting!!!')
+                        else:
+                            uk = uk + proj
+                if not redo: uu[:, k] = vk - uk
+        for k in range(s, f):
+            uk = uu[:, k].clone()
+            uu[:, k] = uk / (uk.norm())
+
+        # undo swapping of rows and columns
+        uu = uu.T 
+
+        # return from 2D
+        if is_3d:
+            uu = uu.view(shape_2d)
+        
+        return torch.nn.Parameter(uu)
+
+    def forward(self, x_querry, l, x_block=None, train=False, task_id=None):
+
+        # e prompts
+        e_valid = False
+        if l in self.e_layers:
+            e_valid = True
+            B, C = x_querry.shape
+
+            local_k = getattr(self,f'e_lk_{l}')
+            global_k = getattr(self,f'e_gk_{l}')
+            p = getattr(self,f'e_p_{l}')
+            pt = int(self.e_pool_size / (self.n_tasks))
+            s = int(self.task_count * pt)
+            f = int((self.task_count + 1) * pt)
+            
+            # querry 
+            q = nn.functional.normalize(x_querry, dim=1).detach()
+            local_p_list = []
+            
+            if train:
+                
+                # global attention
+                start = int(self.task_count)
+                end = int(self.task_count+1)
+                global_key = global_k[0:end]
+
+                n_global_key = nn.functional.normalize(global_key, dim=1)
+                global_cos_sim = torch.einsum('bj,kj->bk', q, n_global_key)
+                global_attention = self.attend(global_cos_sim).to(device=global_key.device)
+                          
+                with torch.no_grad():
+                    target_domain = torch.zeros_like(global_attention).to(device=global_attention.device)
+                    target_domain[:,self.task_count] = 1
+                    target_domain = torch.argmax(target_domain, dim=1)
+
+                loss = self.prompt_loss(global_attention, target_domain) +\
+                       self.ortho_penalty(global_key)
+                
+                # attention
+                
+                if self.attended_p and self.task_count > 0:
+                    for start in range(0, s, pt):
+                        end = start + pt
+                        local_key = local_k[start:end].detach().clone()
+                        value = p[start:end].detach().clone()
+                        n_key = nn.functional.normalize(local_key, dim=1)
+                        cos_sim = torch.einsum('bj,kj->bk', q, n_key)
+                        local_attention = self.attend(cos_sim)
+                        p_ = torch.einsum('bk,kld->bld', local_attention, value)
+                        local_p_list.append(p_)
+                        
+                    key_curr = local_k[s:f]
+                    value_curr = p[s:f]
+                    n_key_curr = nn.functional.normalize(key_curr, dim=1)
+                    cos_sim_curr = torch.einsum('bj,kj->bk', q, n_key_curr)
+                    attention_curr = self.attend(cos_sim_curr)
+                    p_curr = torch.einsum('bk,kld->bld', attention_curr, value_curr)
+                    local_p_list.append(p_curr)
+                    
+                    local_p = torch.stack(local_p_list, dim=1) # bpld
+                    global_p = torch.einsum("bpld, bp->bld", (local_p, global_attention))
+                    
+                    loss += self.ortho_penalty(key_curr)
+                else:
+                    key_curr = local_k[s:f]
+                    value_curr = p[s:f]
+                    n_key_curr = nn.functional.normalize(key_curr, dim=1)
+                    cos_sim_curr = torch.einsum('bj,kj->bk', q, n_key_curr)
+                    attention_curr = self.attend(cos_sim_curr)
+                    p_curr = torch.einsum('bk,kld->bld', attention_curr, value_curr)
+                    global_p = p_curr
+                    
+            else:
+                # inference 
+                loss = 0
+                with torch.no_grad():
+                    
+                    # global attention
+                    start = int(self.task_count)
+                    end = int(self.task_count+1)
+                    global_key = global_k[0:end] #torch.cat((global_K[:start].detach().clone(),global_K[start:end]), dim=0)
+
+                    n_global_key = nn.functional.normalize(global_key, dim=1)
+                    global_cos_sim = torch.einsum('bj,kj->bk', q, n_global_key)
+                    global_attention = self.attend(global_cos_sim)
+                    
+                    for start in range(0, f, pt):
+                        end = start + pt
+                        local_key = local_k[start:end]
+                        value = p[start:end]
+                        n_key = nn.functional.normalize(local_key, dim=1)
+                        cos_sim = torch.einsum('bj,kj->bk', q, n_key)
+                        local_attention = self.attend(cos_sim)
+                        p_ = torch.einsum('bk,kld->bld', local_attention, value)
+                        local_p_list.append(p_)
+                    
+                    local_p = torch.stack(local_p_list, dim=1) # bpld
+                    
+                    if self.attended_p:
+                        global_p = torch.einsum("bpld, bp->bld", (local_p, global_attention))
+                        self.global_p = global_p
+                    else:
+                        selected_domain = torch.argmax(global_attention, dim=1)
+                        global_p = local_p[range(local_p.shape[0]), selected_domain,:,:]
+                        self.global_p = global_p
+
+            # select prompts
+            i = int(self.e_p_length/2)
+            global_p = self.prompt_adapter(global_p)
+            Ek = global_p[:,:i,:]
+            Ev = global_p[:,i:,:]
+
+        else:
+            loss = 0
+
+        # combine prompts for prefix tuning
+        if e_valid:
+            p_return = [Ek, Ev]
+        else:
+            p_return = None
+
+        # return
+        return p_return, loss, x_block
+
+def tensor_prompt(a, b, c=None, ortho=False, device='cudo:0'):
+    if c is None:
+        p = torch.nn.Parameter(torch.FloatTensor(a,b).to(device), requires_grad=True)
+    else:
+        p = torch.nn.Parameter(torch.FloatTensor(a,b,c).to(device), requires_grad=True)
+    if ortho:
+        nn.init.orthogonal_(p)
+    else:
+        # nn.init.uniform_(p)
+        torch.nn.init.xavier_uniform_(p)
+    return p 

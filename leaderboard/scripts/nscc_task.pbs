@@ -1,0 +1,37 @@
+#!/bin/bash
+
+### The following requests all resources on 1 DGX-1 node
+#PBS -l select=1:ngpus=2:ncpus=8
+
+### Specify amount of time required
+#PBS -l walltime=24:00:00
+
+### Specify project code
+#PBS -P personal-shanhelo
+
+### Specify name for job
+#PBS -N VLMDrive-Pro
+
+### Standard output by default goes to file $PBS_JOBNAME.o$PBS_JOBID
+### Standard error by default goes to file $PBS_JOBNAME.e$PBS_JOBID
+### To merge standard output and error use the following
+#PBS -j oe
+
+### For automatic mailing, use the following options:
+#PBS -M wenhui001@e.ntu.edu.sg
+#PBS -m abe
+
+# PBS -o out-run.txt
+
+### Start of commands to be run
+# source /home/users/ntu/wenhui00/miniconda3/etc/profile.d/conda.sh
+#source /home/users/ntu/songyan0/miniconda3/etc/profile.d/conda.sh
+source /home/users/ntu/shanhelo/miniconda3/etc/profile.d/conda.sh
+conda activate interfuser
+
+NUM_GPUS=1      # should be equal to the ngpus above
+
+# cd /home/users/ntu/wenhui00/scratch/projects/VLMDrive-Pro/leaderboard/scripts
+#cd /home/users/ntu/songyan0/scratch/projects/VLMDrive-Pro/leaderboard/scripts
+cd /home/users/ntu/shanhelo/scratch/wenhui_projects/VLMDrive-Pro/leaderboard/scripts
+sh train.sh #>> VLMDrive-Pro.out
