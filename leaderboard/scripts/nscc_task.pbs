@@ -10,7 +10,7 @@
 #PBS -P personal-shanhelo
 
 ### Specify name for job
-#PBS -N VLMDrive-Pro
+#PBS -N ProFounDrive
 
 ### Standard output by default goes to file $PBS_JOBNAME.o$PBS_JOBID
 ### Standard error by default goes to file $PBS_JOBNAME.e$PBS_JOBID
@@ -33,5 +33,5 @@ NUM_GPUS=1      # should be equal to the ngpus above
 
 # cd /home/users/ntu/wenhui00/scratch/projects/VLMDrive-Pro/leaderboard/scripts
 #cd /home/users/ntu/songyan0/scratch/projects/VLMDrive-Pro/leaderboard/scripts
-cd /home/users/ntu/shanhelo/scratch/wenhui_projects/VLMDrive-Pro/leaderboard/scripts
-sh train.sh #>> VLMDrive-Pro.out
+cd /home/users/ntu/shanhelo/scratch/wenhui_projects/ProFounDrive/leaderboard/scripts
+sh train.sh #>> ProFounDrive.out
