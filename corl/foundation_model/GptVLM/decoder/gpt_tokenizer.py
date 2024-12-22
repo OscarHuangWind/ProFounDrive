@@ -62,13 +62,6 @@ class VLMAdapter(nn.Module):
         return Qformer, query_tokens
     
     def dynamic_prompt(self, vector, train):
-        # json_file = open('../../corl/foundation_model/decoder/template.json', 'r')
-        # self.instruction_temp = json.load(json_file)
-        # instruction_objects = self.instruction_temp['objects']
-        # instruction_non = self.instruction_temp['non-object']
-        # lat_instruction = self.instruction_temp['lat-instruction']
-        # long_instruction = self.instruction_temp['long-instrunction']
-        # general_instruction = self.instruction_temp['general']
         B, t, c = vector.shape
         vector = vector.reshape(-1, c)
         prompt_list = []
@@ -133,34 +126,8 @@ class VLMAdapter(nn.Module):
                     chunk_index = objects.rfind(',')
                     # if chunk_index != -1:
                     objects = objects[:chunk_index]
-                    prompt = prompt.replace('objects', objects)
-
-                # if num_objects == 0:
-                #     prompt = self.non_prompt
-                # else:
-                #     prompt = self.object_prompt
-
-                # if bike_flag:
-                #     objects += 'cyclists, '
-                # if ped_flag:
-                #     objects += 'pedestrians, '
-                # if red_light_flag:
-                #     objects += 'red light, '
-                # if stop_flag:
-                #     objects += 'stop sign, '
-                # if vehicle_flag:
-                #     objects += 'vehicles, '
-                # chunk_index = objects.rfind(',')
-                # objects = objects[:chunk_index]
-                # prompt = prompt.replace('objects', objects)
-            
-            # prompt = prompt.replace('value', '(%.2f, %.2f)' % (target_waypoints[0], target_waypoints[1]))
-            # general_prompt = np.random.choice(general_instruction)
-            # general_index = np.random.randint(0, 4, 1)
-            # prompt += lat_instruction + long_instruction #+ general_instruction[general_index[0]]            
+                    prompt = prompt.replace('objects', objects)          
             prompt_list.append(prompt)
-            # print(instruction)
-            # print(prompt)
         return prompt_list
         
     
@@ -199,36 +166,13 @@ class VLMAdapter(nn.Module):
                     
                     if stop_flag:
                         prompt += ' a stop sign,'
-
-                # vehicle_flag = instruction[2]
-                # bike_flag = instruction[2]
-                # ped_flag = instruction[3]
-                # red_light_flag = instruction[4]
-                # stop_flag = instruction[5]
-                # if red_light_flag and fg_flag == 1:
-                #     # only red light is detected
-                #     prompt = 'There is a red light,'
-                # else:
-                #     prompt = 'There are'
-                #     # if vehicle_flag:
-                #     #     prompt += ' vehicles,'
-                #     if bike_flag:
-                #         prompt += ' bikes,'
-                #     if ped_flag:
-                #         prompt += ' pedestrians,'
-                    
-                #     if red_light_flag:
-                #         prompt += ' a red light,'
-                    
-                #     if stop_flag:
-                #         prompt += ' a stop sign,'
                 
                 prompt += f' and the target waypoint is {target_waypoints[0], target_waypoints[1]}.'
 
             else:
                 # no foreground objects detected
                 prompt = f'The target waypoint is {target_waypoints[0], target_waypoints[1]}.'
-            # print(prompt)
+
             prompt_list.append(prompt)
 
         return prompt_list
@@ -241,7 +185,6 @@ class VLMAdapter(nn.Module):
         device = input_embeds.device
 
         # convert the instruction vector to prompt
-        # prompt = self.transfer_vector_to_prompt(instruction_vector)
         prompt_list = self.dynamic_prompt(instruction_vector, train)
         self.prompt_list = prompt_list
 
@@ -278,109 +221,3 @@ class VLMAdapter(nn.Module):
         llm_inputs = llm_inputs.view(B, t, -1, self.llm_hidden_dim)
         llm_attention_mask = llm_attention_mask.view(B, t, -1)
         return llm_inputs, llm_attention_mask
-
-def attach_debugger():
-    import debugpy
-    debugpy.listen(5678)
-    print("Waiting for debugger!")
-    debugpy.wait_for_client()
-    print("Attached!")
-
-
-def test_batch_prompot():
-    from transformers import GPT2Tokenizer, GPT2LMHeadModel
-
-    import torch
-    tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
-    tokenizer.add_special_tokens({'pad_token': '[PAD]'})
-    tokenizer.add_special_tokens({'bos_token': '</s>'})
-    tokenizer.add_special_tokens({'eos_token': '</s>'})
-    tokenizer.add_special_tokens({'unk_token': '</s>'})
-    # llm_model = GPT2Model.from_pretrained('gpt2', torch_dtype=torch.bfloat16, low_cpu_mem_usage=True).cuda()
-    # sentences = [
-    #     "The cat sat on the mat.",
-    #     "Once upon a time in a land far, far away,",
-    #     # "To be or not to be, that is the question:"
-    # ]
-    
-    # encoded_inputs = tokenizer(sentences, return_tensors='pt', padding='longest', truncation=True, max_length=64).to('cuda')
-    # import pdb; pdb.set_trace()
-    # print("Encoded inputs:", encoded_inputs)
-    # text_embeds = llm_model.get_input_embeddings()(encoded_inputs.input_ids)
-
-    # model = GPT2LMHeadModel.from_pretrained('gpt2')
-
-    # 准备输入数据
-    # model = GPT2LMHeadModel.from_pretrained('gpt2')
-
-    # sentences = [
-    #     "The cat sat on the mat.",
-    #     "Once upon a time in a land far, far away,",
-    #     "To be or not to be, that is the question:"
-    # ]
-
-    # # 对句子进行编码，并添加填充
-    # encoded_inputs = tokenizer(sentences, return_tensors='pt', padding=True)
-
-    # # 打印编码后的输入
-    # print("Encoded inputs:", encoded_inputs)
-
-    # # 获取模型的嵌入层
-    # embedding_layer = model.get_input_embeddings()
-
-    # # 将编码的输入ID转换为嵌入向量
-    # input_embeddings = embedding_layer(encoded_inputs['input_ids'])
-
-    # # 打印嵌入向量的形状
-    # print("Input embeddings shape:", input_embeddings.shape)
-    # import pdb; pdb.set_trace()
-
-
-    # 加载GPT-2模型和分词器
-    # model = GPT2LMHeadModel.from_pretrained('gpt2')
-
-    # # 准备输入数据
-    # sentences = [
-    #     "The cat sat on the mat.",
-    #     "Once upon a time in a land far, far away,",
-    #     "To be or not to be, that is the question:"
-    # ]
-
-    # # 对句子进行编码，并添加填充
-    # encoded_inputs = tokenizer(sentences, return_tensors='pt', padding=True)
-
-    # # 打印编码后的输入
-    # print("Encoded inputs:", encoded_inputs)
-
-    # # 获取模型的嵌入层
-    # embedding_layer = model.get_input_embeddings()
-
-    # # 将编码的输入ID转换为嵌入向量
-    # input_embeddings = embedding_layer(encoded_inputs['input_ids'])
-
-    # # 打印嵌入向量的形状
-    # print("Input embeddings shape:", input_embeddings.shape)
-
-
-if __name__ == '__main__':
-    # attach_debugger()
-
-    # test QFormer
-    test_input_data = torch.randn(1, 2, 20, 1408).cuda()
-    prompt = torch.randint(0, 2, (1, 2, 5)).cuda()
-    waypoints = torch.randn((1, 2, 2)).cuda()
-    prompt = torch.cat((waypoints, prompt), dim=-1)
-
-    input_dict = {
-        'ImageTokenEmbedding': test_input_data,
-        'LanguageInstruction': prompt
-    }
-    # import pdb; pdb.set_trace()
-    llm_model = GPT2Model.from_pretrained('gpt2-xl', torch_dtype=torch.bfloat16, low_cpu_mem_usage=True).cuda()
-
-    adapter = VLMAdapter(llm_hidden_dim=1600).cuda()
-    hidden_state, mask = adapter(input_dict, llm_model.get_input_embeddings())
-
-
-
-    

@@ -15,13 +15,12 @@ from transformers import ViTModel
 
 import contextlib
 
-# from .vision_encoder.segformer import SegEncoder
 from .GptVLM.vision_encoder.mask2former import SegEncoder
 from .GptVLM.vision_encoder.vit import VisionTransformer
 from .GptVLM.decoder.language_decoder import PromptGPT
 
 from prompt.prompt_baseline import CodaPrompt, DualPrompt, L2P
-from prompt.drive_prompt import DrivePrompt
+from prompt.driving_skill_prompt import DSPrompt
 
 class GPTVLA_Agent(nn.Module):
 
@@ -107,7 +106,7 @@ class GPTVLA_Agent(nn.Module):
         elif self.prompt_name == 'drive':
             print('Drive Prompt')
             prompt_param = [config.num_tasks, [config.pool_size, config.e_prompt_len, config.top_k, config.attended_p]]
-            self.prompt = DrivePrompt(self.encoder_embed_dim, prompt_param[0], prompt_param[1], key_dim=self.hidden_dim, mode= config.mode, device=config.device)
+            self.prompt = DSPrompt(self.encoder_embed_dim, prompt_param[0], prompt_param[1], key_dim=self.hidden_dim, mode= config.mode, device=config.device)
         else:
             print('No prompt: ViT + DT')
             self.prompt = None
@@ -193,7 +192,6 @@ class GPTVLA_Agent(nn.Module):
                         speed_index = torch.argmax(speed_softmax_out, dim=2)
                         last_speed_decision = F.one_hot(speed_index, num_classes=self.config.num_long_classes)[:,-1,:]               
                         
-                        # last_decision = torch.cat((last_route_decision, last_speed_decision), dim=-1).detach()
                         last_decision = last_route_decision.detach()
                         last_logit = logit[:,-1,:]
 
@@ -262,7 +260,6 @@ class GPTVLA_Agent(nn.Module):
                         speed_index = torch.argmax(speed_softmax_out, dim=2)
                         last_speed_decision = F.one_hot(speed_index, num_classes=self.config.num_long_classes)[:,-1,:]               
                         
-                        # last_decision = torch.cat((last_route_decision, last_speed_decision), dim=-1).detach()
                         last_decision = last_route_decision.detach()
                         last_logit = logit[:,-1,:]
 

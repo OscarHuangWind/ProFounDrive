@@ -41,9 +41,6 @@ def build_continual_dataloader(args, config):
     train_dataset_root = config.train_data
     val_dataset_root = config.val_data
 
-
-
-    # for i in range(3): # for joint training
     for i in range(config.num_tasks):
         train_town_dataset_root = []
         val_town_dataset_root = []
@@ -84,7 +81,6 @@ def build_continual_dataloader(args, config):
                         val_town_dataset_root.append(j)
                 
                 carla_train_dataset = CARLA_Data(root=train_town_dataset_root, config=config, shared_dict=None)
-                # print(len(carla_train_dataset))
                 for i in range(len(carla_train_dataset)):
                     carla_train_dataset[i]
                 carla_val_dataset = CARLA_Data(root=val_town_dataset_root, config=config, shared_dict=None)
@@ -98,7 +94,6 @@ def build_continual_dataloader(args, config):
             worker_init_fn=seed_worker,
             num_workers=args.num_workers,
             pin_memory=args.pin_mem,
-            # collate_fn=collate_fn,
         )
 
         data_loader_val = torch.utils.data.DataLoader(
@@ -110,7 +105,6 @@ def build_continual_dataloader(args, config):
         )
 
         dataloader.append({'train': data_loader_train, 'val': data_loader_val})
-        # dataloader.append({'train': data_loader_train})
     
     print('Data Preprocess Done!')
     return dataloader

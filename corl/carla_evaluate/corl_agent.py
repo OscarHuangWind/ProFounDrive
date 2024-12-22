@@ -5,26 +5,19 @@ Created on Fri Dec  8 14:48:46 2023
 
 @author: oscar
 """
-import sys
-# sys.path.append('home/oscar/Dropbox/InterFuser')
-# sys.path.append('home/automan/Dropbox/InterFuser')
 
 import os
-import json
-import time
-import datetime
-import pathlib
-import time
 import imp
 import cv2
-from collections import deque
-import matplotlib.pyplot as plt
-
+import json
+import time
+import math
 import torch
+import pathlib
+import datetime
 import numpy as np
-import pandas as pd
 from PIL import Image
-from easydict import EasyDict
+from collections import deque
 
 import carla
 from agents.navigation.local_planner import RoadOption
@@ -33,21 +26,14 @@ from carla_birdeye_view import BirdViewProducer, BirdViewCropType, PixelDimensio
 
 from torchvision import transforms
 from leaderboard.autoagents import autonomous_agent
-from timm.models import create_model
-from team_code.map_agent import MapAgent
-from team_code.utils import lidar_to_histogram_features, transform_2d_points
+from team_code.tracker import Tracker
 from team_code.planner import RoutePlanner
 from team_code.render import render, render_self_car, render_waypoints
-from team_code.tracker import Tracker
+from team_code.utils import lidar_to_histogram_features, transform_2d_points
 
-from corl_config import GlobalConfig
 from carla_evaluate.corl_controller import PIDController, CORLController
 from foundation_model.gpt_vla_agent import init_gpt_vla
 from foundation_model.llama_vla_agent import init_llama_vla
-from dataset_preprocess.data import CARLA_Data
-
-import math
-import yaml
 
 try:
     import pygame
@@ -63,34 +49,12 @@ WEATHERS = {
     "ClearNoon": carla.WeatherParameters(5.0, 0.0, 0.0, 0.35, 45.0, 75.0, 0.0, 0.0, 0.0, 0.0),
     "ClearSunset": carla.WeatherParameters(5.0, 0.0, 0.0, 0.35, 45.0, 5.0, 0.0, 0.0, 0.0, 0.0),
     "ClearNight": carla.WeatherParameters(5.0, 0.0, 0.0, 0.35, -1.0, -90.0, 0.0, 0.0, 0.0, 0.0),
-    # "ClearNight": carla.WeatherParameters(5.0, 0.0, 0.0, 0.35, -1.0, -90.0, 60.0, 75.0, 1.0, 0.0),
-    # "CloudyMorning": carla.WeatherParameters(60.0, 0.0, 30.0, 10.0, 45.0, 35.0, 0.0, 0.0, 0.0, 0.0),
-    # "CloudyDawn": carla.WeatherParameters(60.0, 0.0, 30.0, 10.0, 45.0, 5.0, 0.0, 0.0, 0.0, 0.0),
     "FogyNoon": carla.WeatherParameters(60.0, 0.0, 50.0, 10.0, 45.0, 75.0, 40.0, 0.75, 1.0, 0.0),
     "FogyySunset": carla.WeatherParameters(60.0, 0.0, 50.0, 10.0, 45.0, 5.0, 20.0, 0.75, 1.0, 0.0),
     "FogyNight": carla.WeatherParameters(60.0, 0.0, 50.0, 10.0, -1.0, -90.0, 60.0, 0.75, 1.0, 0.0),
     "HardRainNoon": carla.WeatherParameters(100.0, 100.0, 70.0, 50.0, 45.0, 75.0, 0.0, 0.0, 0.0, 100.0),
     "HardRainSunset": carla.WeatherParameters(100.0, 100.0, 70.0, 50.0, 45.0, 5.0, 0.0, 0.0, 0.0, 100.0),
-    # "HardRainNight": carla.WeatherParameters(100.0, 100.0, 70.0, 50.0, -1.0, -90.0, 100.0, 0.75, 0.1, 100.0),
     "HardRainNight": carla.WeatherParameters(100.0, 100.0, 70.0, 50.0, -1.0, -90.0, 60.0, 30.0, 1.0, 100.0),
-    # "ClearNoon": carla.WeatherParameters.ClearNoon,
-    # "ClearSunset": carla.WeatherParameters.ClearSunset,
-    #"CloudyNoon": carla.WeatherParameters.CloudyNoon,
-    #"CloudySunset": carla.WeatherParameters.CloudySunset,
-    #"WetNoon": carla.WeatherParameters.WetNoon,
-    #"WetSunset": carla.WeatherParameters.WetSunset,
-    #"WetNight": carla.WeatherParameters(5.0,0.0,50.0,10.0,-1.0,-90.0,60.0,75.0,1.0,60.0),
-    #"WetCloudyNoon": carla.WeatherParameters.WetCloudyNoon,
-    #"WetCloudySunset": carla.WeatherParameters.WetCloudySunset,
-    #"WetCloudyNight": carla.WeatherParameters(60.0,0.0,50.0,10.0,-1.0,-90.0,60.0,0.75,0.1,60.0),
-    #"SoftRainNoon": carla.WeatherParameters.SoftRainNoon,
-    #"SoftRainSunset": carla.WeatherParameters.SoftRainSunset,
-    #"SoftRainNight": carla.WeatherParameters(60.0,30.0,50.0,30.0,-1.0,-90.0,60.0,0.75,0.1,60.0),
-    # "MidRainyNoon": carla.WeatherParameters.MidRainyNoon,
-    # "MidRainSunset": carla.WeatherParameters.MidRainSunset,
-    # "MidRainyNight": carla.WeatherParameters(80.0,60.0,60.0,60.0,-1.0,-90.0,60.0,0.75,0.1,80.0),
-    # "HardRainNoon": carla.WeatherParameters.HardRainNoon,
-    # "HardRainSunset": carla.WeatherParameters.HardRainSunset,
 }
 WEATHERS_IDS = list(WEATHERS)
 
@@ -110,16 +74,6 @@ class DisplayInterface(object):
             (self._width, self._height), pygame.HWSURFACE | pygame.DOUBLEBUF
         )
 
-        # self._vehicle = CarlaDataProvider.get_hero_actor()
-        # self._world = self._vehicle.get_world()
-        # self._map = self._world.get_map()
-        # self.birdview_producer = BirdViewProducer(
-        #     CarlaDataProvider.get_client(),  # carla.Client
-        #     target_size=PixelDimensions(width=400, height=400),
-        #     pixels_per_meter=4,
-        #     crop_type=BirdViewCropType.FRONT_AND_REAR_AREA,
-        # )
-
         pygame.display.set_caption("CORL Agent")
 
     def run_interface(self, input_data):
@@ -127,17 +81,13 @@ class DisplayInterface(object):
         rgb_left = input_data['rgb_left']
         rgb_right = input_data['rgb_right']
         rgb_focus = input_data['rgb_focus']
-        # map = input_data['map']
         trajectory = input_data['predicted_trajectory']
         lat_decision = input_data['predicted_lat_decision']
         long_decision = input_data['predicted_long_decision']
         surface = np.zeros((600, 1200, 3),np.uint8)
         surface[:, :800] = rgb
         surface[:400,800:1200] = input_data['bev']
-        # surface[400:600,800:1000] = trajectory
         surface[440:600,1000:1200] = trajectory[0:160,:]
-        # surface[400:600,800:1000] = input_data['map_t1']
-        # surface[400:600,1000:1200] = input_data['map_t2']
         surface[:150,:200] = input_data['rgb_left']
         surface[:150, 600:800] = input_data['rgb_right']
         surface[:150, 325:475] = input_data['rgb_focus']
@@ -154,13 +104,6 @@ class DisplayInterface(object):
         surface = cv2.putText(surface, 'Planned Trajectory', (1010,420), cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0), 2)
         surface = cv2.putText(surface, long_decision, (820,480), cv2.FONT_HERSHEY_SIMPLEX,0.75,(255,255,255), 2)
         surface = cv2.putText(surface, lat_decision, (820,530), cv2.FONT_HERSHEY_SIMPLEX,0.75,(255,255,255), 2)
-        # surface = cv2.putText(surface, 'Future Prediction', (940,420), cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0), 2)
-        # surface = cv2.putText(surface, 't', (1160,385), cv2.FONT_HERSHEY_SIMPLEX,0.8,(255,0,0), 2)
-        # surface = cv2.putText(surface, '0', (1170,385), cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0), 2)
-        # surface = cv2.putText(surface, 't', (960,585), cv2.FONT_HERSHEY_SIMPLEX,0.8,(255,0,0), 2)
-        # surface = cv2.putText(surface, '1', (970,585), cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0), 2)
-        # surface = cv2.putText(surface, 't', (1160,585), cv2.FONT_HERSHEY_SIMPLEX,0.8,(255,0,0), 2)
-        # surface = cv2.putText(surface, '2', (1170,585), cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0), 2)
 
         surface[:150,198:202]=0
         surface[:150,323:327]=0
@@ -335,14 +278,7 @@ class InterfuserAgent(autonomous_agent.AutonomousAgent):
                                           self.config.img_resolution[0],
                                           self.config.img_resolution[1]),
                                     dtype=np.int32,
-                                    )
-
-        # self.img_states = np.zeros(shape=(self.seq_len, 3,
-        #                                   224,
-        #                                   224),
-        #                            dtype=np.int32,
-        #                            )
-        
+                                    )        
         self.prompt_list = []
         self.pos_list = []
         self.action_route_list = []
@@ -417,8 +353,6 @@ class InterfuserAgent(autonomous_agent.AutonomousAgent):
             (self.save_path / "meta").mkdir(parents=True, exist_ok=False)
 
     def _init(self):
-        # self._route_planner = RoutePlanner(4.0, 50.0)
-        # self._route_planner.set_route(self._global_plan, True)
                 
         self._route_planner = RoutePlanner(7.5, 25.0, 257)
         self._route_planner.set_route(self._global_plan, True)
@@ -428,9 +362,7 @@ class InterfuserAgent(autonomous_agent.AutonomousAgent):
         print(len(self._waypoint_planner.route))
         
         self.controller = CORLController(self.config)
-        # self._turn_controller = PIDController(K_P=1.25, K_I=0.75, K_D=0.3, n=40)
         self._turn_controller = PIDController(K_P=1.4, K_I=0.75, K_D=0.3, n=40)
-        # self._turn_controller = PIDController(K_P=1.8, K_I=0.75, K_D=1.2, n=40)
         self._speed_controller = PIDController(K_P=5.0, K_I=0.5, K_D=1.0, n=40)
         
         self.initialized = True
@@ -441,10 +373,6 @@ class InterfuserAgent(autonomous_agent.AutonomousAgent):
         if self.config.weather != "none":
             weather = WEATHERS[self.config.weather]
             self._world.set_weather(weather)
-        
-        # settings = self._world.get_settings()
-        # settings.fixed_delta_seconds = 0.25 #0.05
-        # self._world.apply_settings(settings)
         
         self._map = self._world.get_map()
         self._actors = self._world.get_actors()
@@ -713,8 +641,6 @@ class InterfuserAgent(autonomous_agent.AutonomousAgent):
         stop_sign = self._is_stop_sign_hazard(actors.filter("*stop*"))
         vehicle = self._is_vehicle_hazard(actors.filter("*vehicle*"), self.route_command)
         junction_vehicle = self._is_junction_vehicle_hazard(actors.filter("*vehicle*"), self.route_command)
-        # vehicle = self._is_vehicle_hazard(actors.filter("*vehicle*"), next_cmd)
-        # junction_vehicle = self._is_junction_vehicle_hazard(actors.filter("*vehicle*"), next_cmd)
         vehicle = vehicle + junction_vehicle
 
         # record the reason for braking
@@ -752,13 +678,11 @@ class InterfuserAgent(autonomous_agent.AutonomousAgent):
         start_time = time.time()
 
         tick_data = self.tick(input_data)
-        # pos = self._get_position(tick_data)
 
         velocity = tick_data["speed"] # float64
         
         #######################################################################
         command = tick_data["next_cmd"] # int
-        # command = self._command_planner.route[0][1].value
         #######################################################################
         
         timestep = np.array(self.step+3)[np.newaxis] # array of int64 (1,)
@@ -798,20 +722,9 @@ class InterfuserAgent(autonomous_agent.AutonomousAgent):
         else:
             decision_states = torch.tensor(self.decision_states, dtype=torch.float64).unsqueeze(0).to(device=self.device)
         
-        # if self.ensemble:
-        #     outputs = []
-        #     with torch.no_grad():
-        #         for net in self.nets:
-        #             action, _ = net.get_action(img_states, actions, rtgs, timesteps, detection_states,
-        #                          decision_states, target_waypoints=target_waypoints)
-        #             outputs.append(action)
-        # else:
         with torch.no_grad():
             actions, actions_one_hot, trajectory, route_logit, speed_logit = self.net.get_action(img_states, actions, rtgs, timesteps, detection_states,
                                                                                                  decisions=decision_states, target_waypoints=target_waypoints)
-
-        # action = torch.nn.functional.one_hot(actions.squeeze(0)[-1], num_classes=6).detach().cpu().numpy()
-        # next_command = actions.squeeze(0)[-1].detach().cpu().numpy() + 1
         
         action_route = actions[0]
         action_speed = actions[-1]
@@ -833,15 +746,6 @@ class InterfuserAgent(autonomous_agent.AutonomousAgent):
         trajectory = trajectory.squeeze(0).detach().cpu().numpy()
         next_node = trajectory[self.control_point,:] #1 for town07
 
-        #### Trajectory Refinement ####
-        # next_node, trajectory_refined = self._smooth_trajectory(tick_data, trajectory, next_node, next_route_command)
-        ###############################
-                
-        # print(f'predited wp:{trajectory[0,:]}\n',
-        #       f'predited wp:{trajectory[1,:]}\n',
-        #       f'predited wp:{trajectory[2,:]}\n',
-        #       f'ground truth wp:{tick_data["local_next_waypoint"]}\n')
-        
         target_node = target_waypoint
         target_command = target_command
 
@@ -861,9 +765,7 @@ class InterfuserAgent(autonomous_agent.AutonomousAgent):
             self.affected_light_id = light.id
         else:
             self.affected_light_id = -1
-        
-        # print("decision:", decision, "detection:", detection)
-        
+                
         control = carla.VehicleControl()
         control.steer = steer #+ 1e-2 * np.random.randn()
         control.throttle = throttle
@@ -876,8 +778,6 @@ class InterfuserAgent(autonomous_agent.AutonomousAgent):
         else:
             r_action = 0.0
         
-        # speed reward
-
         r_speed = 1.0 - np.abs(velocity - target_speed) / self.config.max_speed
 
         # lateral displacement reward
@@ -902,7 +802,6 @@ class InterfuserAgent(autonomous_agent.AutonomousAgent):
         self.prev_action = np.array([throttle, brake, steer]) #action
 
         total_time = time.time() - start_time
-        # print('Target Point is:', target_waypoint, 'Pos is:', pos, 'rtg is:', self.rtgs)
         print('One step time:', total_time)
 
         ##### Rendering ####
@@ -963,7 +862,6 @@ class InterfuserAgent(autonomous_agent.AutonomousAgent):
         )
 
         tick_data["bev"] = cv2.resize(segmentation_image, (400, 400))
-        # tick_data["bev"] = cv2.resize(bev, (400, 400))
 
         tick_data["mes"] = "speed: %.2f" % velocity
         tick_data["time"] = "time: %.3f" % timestamp
@@ -982,32 +880,16 @@ class InterfuserAgent(autonomous_agent.AutonomousAgent):
         self.logit_speed_list.append(speed_logit.tolist())
         self.pos_list.append(pos.tolist())
         self.prompt_list.append(tick_data["language"])
-        
-        # df = pd.DataFrame(data={'route_decision': self.action_route_list,
-        #                         'speed_decision': self.action_speed_list,
-        #                         'route_logit:': self.logit_route_list,
-        #                         'speed_logit:': self.logit_speed_list,
-        #                         'position': self.pos_list})
-        
-        # if self.step == 250:
-        #     data={'route_decision': self.action_route_list[-50:],
-        #           'speed_decision': self.action_speed_list[-50:],
-        #           'route_logit': self.logit_route_list[-50:],
-        #           'speed_logit': self.logit_speed_list[-50:],
-        #           'position': self.pos_list[-50:]}
-            
-        #     file_name = 'decision_baseline_pedestrain.json'
-        #     self.save_json(data, file_name)
 
-        data={'route_decision': self.action_route_list,
-              'speed_decision': self.action_speed_list,
-              'route_logit': self.logit_route_list,
-              'speed_logit': self.logit_speed_list,
-              'position': self.pos_list,
-              'prompt': self.prompt_list}
+        # data={'route_decision': self.action_route_list,
+        #       'speed_decision': self.action_speed_list,
+        #       'route_logit': self.logit_route_list,
+        #       'speed_logit': self.logit_speed_list,
+        #       'position': self.pos_list,
+        #       'prompt': self.prompt_list}
             
-        file_name = 'decision_baseline_gas_newest_middlelane.json'
-        self.save_json(data, file_name)
+        # file_name = 'decision_baseline_gas_newest_middlelane.json'
+        # self.save_json(data, file_name)
         
         # self.save_json(data)
         # print(self.step)
@@ -1041,7 +923,6 @@ class InterfuserAgent(autonomous_agent.AutonomousAgent):
         self.rtgs = np.concatenate((self.rtgs, (self.rtgs[-1] - rewards/self.reward_scale)[np.newaxis]), axis=0)[-self.seq_len:]
 
     def states_adapter(self, img_states, detection_states, timesteps, decision_states=None, target_waypoints=None):
-        # print("before timesteps:", self.timesteps)
         self.img_states = np.concatenate((self.img_states, img_states[np.newaxis]), axis=0)[-self.seq_len:]
         self.detection_states = np.concatenate((self.detection_states, detection_states[np.newaxis]), axis=0)[-self.seq_len:]
         self.timesteps = np.concatenate((self.timesteps, timesteps[np.newaxis]), axis=0)[-self.seq_len:]
@@ -1071,7 +952,6 @@ class InterfuserAgent(autonomous_agent.AutonomousAgent):
 
         # Steering.
         angle = -np.degrees(np.arctan2(-target[0], -target[1]))
-        # angle = np.degrees(np.pi/2 - np.arctan2(-target[0], -target[1]))
         angle_unnorm = 0.0 if np.isnan(angle) else angle
         angle = angle_unnorm / 90
 
@@ -1106,7 +986,6 @@ class InterfuserAgent(autonomous_agent.AutonomousAgent):
 
         # Steering.
         angle = -np.degrees(np.arctan2(-target[0], -target[1]))
-        # angle = np.degrees(np.pi/2 - np.arctan2(-target[0], -target[1]))
         angle_unnorm = 0.0 if np.isnan(angle) else angle
         angle = angle_unnorm / 90
 
@@ -1122,13 +1001,10 @@ class InterfuserAgent(autonomous_agent.AutonomousAgent):
         should_slow = abs(angle_far_unnorm) > 45.0 or abs(angle_unnorm) > 5.0
         self.should_slow = should_slow
         target_speed = 4.0 if should_slow else 6.5
-        # target_speed = 8.0 if should_slow else 12
         brake = self._should_brake(route_command)
         target_speed = target_speed if not brake else 0.0
         self.should_brake = brake
         
-        # print('Rule Speed Decision:', target_speed)
-
         speed_decision = LONG_DECISION_LIST[speed_command]
         
         if speed_decision == 'Brake':
@@ -1144,15 +1020,11 @@ class InterfuserAgent(autonomous_agent.AutonomousAgent):
             self.should_brake = 0
             target_speed = 6.5
             
-        # print('VLMDrive-Pro Speed Decision:', target_speed)
-
         delta = np.clip(target_speed - speed, 0.0, 0.25)
         throttle = self._speed_controller.step(delta)
         throttle = np.clip(throttle, 0.0, 0.75)
 
         if self.should_brake:
-            # steer *= 0.5
-            # print('brake:', brake)
             throttle = 0.0
 
         return steer, throttle, self.should_brake, target_speed
@@ -1185,7 +1057,6 @@ class InterfuserAgent(autonomous_agent.AutonomousAgent):
         throttle = np.clip(throttle, 0.0, 0.75)
 
         if brake:
-            # steer *= 0.5
             throttle = 0.0
 
         return steer, throttle, brake, target_speed
@@ -1216,10 +1087,7 @@ class InterfuserAgent(autonomous_agent.AutonomousAgent):
         detection = np.zeros((len(full_list)))
         for idx, item in enumerate(full_list):
             if len(item) > 0:
-                # target_speed = 0.0
                 detection[idx] = 1.0
-            # else:
-                # target_speed = self.config.max_speed
 
         return any(len(x) > 0
             for x in [
@@ -1422,14 +1290,11 @@ class InterfuserAgent(autonomous_agent.AutonomousAgent):
 
             angle_between_heading = np.degrees(np.arccos(np.clip(o1.dot(o2), -1, 1)))
 
-            # if self._vehicle.get_location().distance(p2) > 10: #non-conservative town07
-            if self._vehicle.get_location().distance(p2) > 20: #conservative policy
+            if self._vehicle.get_location().distance(p2) > 20: 
                 continue
             if w1.is_junction == False and w2.is_junction == False:
                 continue
-            if angle_between_heading < 15.0 or angle_between_heading > 165: # conservative policy
-            # if angle_between_heading < 40.0 or angle_between_heading > 140: # non-conservative town07
-            # if angle_between_heading < 40.0 or angle_between_heading > 120:
+            if angle_between_heading < 15.0 or angle_between_heading > 165:
                 continue
             collides, collision_point = get_collision(
                 _numpy(p1), v1, _numpy(p2_hat), v2
@@ -1502,7 +1367,7 @@ class InterfuserAgent(autonomous_agent.AutonomousAgent):
             if s2 < 0.05:
                 v2_hat *= s2
 
-            p2 = -3.0 * v2_hat + _numpy(walker.get_location()) # -3.0 non-conservative #-1.8 normal
+            p2 = -1.8 * v2_hat + _numpy(walker.get_location())
             v2 = 8.0 * v2_hat
 
             collides, collision_point = get_collision(p1, v1, p2, v2)

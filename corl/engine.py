@@ -18,20 +18,14 @@ import datetime
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
-from pathlib import Path
 from typing import Iterable
-import matplotlib.pyplot as plt
 
 import torch
 from torch.cuda.amp import GradScaler
 from torch.optim.lr_scheduler import OneCycleLR
-# from torch.utils.tensorboard import SummaryWriter
-from team_code.render import render, render_self_car, render_waypoints
-
-from timm.utils import accuracy
-from timm.optim import create_optimizer
 
 import utils
+from timm.utils import accuracy
 
 os.environ['WANDB_MODE'] = 'online'
 
@@ -65,13 +59,10 @@ class Engine(object):
         trajectory_criterion = torch.nn.MSELoss().to(self.device)
         decision_criterion = torch.nn.CrossEntropyLoss().to(self.device)
         
-        # pbar = tqdm(enumerate(data_loader), total=len(data_loader))
         decision_loss_sum = 0.0
         waypoint_loss_sum = 0.0
-        # for it, data in pbar:
         for it, data in enumerate(data_loader):
             states = data['states'].to(device)
-            # actions = data['actions'].to(device)
             rtgs = data['rtgs'].to(device)
             timesteps = data['timesteps'].to(device)
             detections = data['detections'].to(device)
@@ -162,7 +153,6 @@ class Engine(object):
     def train_and_evaluate(self, train=True):
         
         # create matrix to save end-of-task accuracies 
-        # acc_matrix = np.zeros((3,3)) for joint training
         acc_matrix = np.zeros((self.config.num_tasks, self.config.num_tasks))
         route_acc_matrix = np.zeros((self.config.num_tasks, self.config.num_tasks))
         speed_acc_matrix = np.zeros((self.config.num_tasks, self.config.num_tasks))
@@ -182,7 +172,6 @@ class Engine(object):
             dont_log_wandb = self.config.dont_log_wandb
             wandb_mode = "online" if not dont_log_wandb else "disabled"
 
-            # wandb_name = self.task_name[task_id] + '_' + self.config.prompt_name + '_' + str(self.config.encoder) + '_' + str(self.config.decoder) + '_fixlabelbug_fiximagebug_drama_poolingtoken_mobilevlm_coretemplate_mask2former_global_batch' + str(self.args.batch_size) + '_query16_' + str(self.args.lr_max) + '_' + str(self.args.lr_prompt_max) + '_705050_' + self.task_name[0] + '_' + self.task_name[1] + '_' + self.task_name[2] + '_10prompt'
             wandb_name = self.task_name[task_id] + '_' + self.config.prompt_name + '_' + str(self.config.encoder) + '_' + str(self.config.decoder) + '_mobilevlm_mask2former_batch' + str(self.args.batch_size) + '_query16_' + str(self.args.lr_max) + '_' + str(self.args.lr_prompt_max) + '_' + self.task_name[0] + '_' + self.task_name[1] + '_' + self.task_name[2]
             wandb.init(
             project = self.config.project,
@@ -210,25 +199,15 @@ class Engine(object):
                             p.requires_grad = False
                         if self.args.decoder_freeze in n:
                             p.requires_grad = False
-                        # if self.args.llm_freeze in n:
-                        #     p.requires_grad = False
-                        # if n.startswith('trajectory'):
-                        #     p.requires_grad = False
-                        # if n.startswith('last'):
-                        #     p.requires_grad = False
                         if p.requires_grad == True:
                             print(n)
                 else:
                     
                     for n, p in self.model.named_parameters():
-                        #if self.args.vlm_freeze in n:
-                        #    p.requires_grad = False
                         if self.args.encoder_freeze in n:
                             p.requires_grad = False
                         if self.args.llm_freeze in n:
-                            p.requires_grad = False
-                        # if self.args.qformer_freeze in n:
-                        #     p.requires_grad = False    
+                            p.requires_grad = False 
                         if p.requires_grad == True:
                             print(n)
             else:
@@ -263,7 +242,6 @@ class Engine(object):
                 output_dir = os.path.join(self.args.output_dir, folder_name)
                 
                 logdir = os.path.join(self.args.logdir, self.task_name[task_id], folder_name)
-                # writer = SummaryWriter(log_dir=logdir)
 
                 # Create logdir
                 if not os.path.isdir(logdir):
@@ -298,7 +276,6 @@ class Engine(object):
                     wandb.log({'prompt_lr_' + self.config.prompt_name + '_' + self.config.encoder
                                         + '_' + self.config.decoder: lr_scheduler.get_last_lr()[1]}, step=epoch)
 
-                    # if epoch % self.args.val_every == 0 and task_id > 0:
                     if epoch > 0 and epoch % self.args.val_every == 0:
                         task_mean_acc = self.evaluate_till_now(self.model, self.data_loader, self.device,
                                                 task_id=task_id, class_mask=self.class_mask,
@@ -356,7 +333,7 @@ class Engine(object):
                           task_id=-1, class_mask=None, acc_matrix=None, 
                           route_acc_matrix=None, speed_acc_matrix=None,
                           args=None, record_dir=None):
-        # stat_matrix = np.zeros((3, 3)) for joint training
+
         stat_matrix =  np.zeros((8, self.config.num_tasks))
 
         now = datetime.datetime.now()

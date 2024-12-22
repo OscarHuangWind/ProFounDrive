@@ -306,9 +306,7 @@ class PromptVLM(nn.Module):
         
         ####### replace this model path with yours #########
         model_path = "mtgv/MobileVLM_V2-1.7B" 
-        # model_path = '/home/users/ntu/wenhui00/scratch/projects/pretrain_model/mobilevlm_v2_drama_finetune'
-        # model_path = '/home/automan-apollo/Dropbox/VisionFoundationVehicle/corl/realworld_evaluate/mobilevlm_v2-2.finetune'
-        
+
         self.tokenizer, self.llm_model, self.image_processor, _ = self.load_pretrained_model(model_path, False, False)
         self.vlm_adapter = VLMAdapter(self.tokenizer)
         
@@ -402,9 +400,6 @@ class PromptVLM(nn.Module):
             condition_states = torch.cat((target_waypoints, detections), dim=-1)
         elif target_waypoints is None   : 
             condition_states = torch.cat((decisions, detections), dim=-1)
-
-        # image_tokens = self.vision_projector(states)
-        # image_tokens = image_tokens.reshape(batch_size, seq_length, -1, self.hidden_size)
                 
         '''
         Add Mobilevlm tokenizer for instruction tokens
@@ -419,24 +414,8 @@ class PromptVLM(nn.Module):
 
         vlm_states, vlm_attention_mask, q = self.llm_model.prepare_inputs_labels_for_multimodal(input_ids, llm_attention_mask, images=states, has_q=prompt_query)
 
-        # vlm_states = vlm_states.permute(0, 2, 1)
-        # pool1d = torch.nn.AdaptiveAvgPool1d(80)
-        # vlm_states = pool1d(vlm_states).permute(0, 2, 1)
-
         vlm_states = vlm_states.view(batch_size, seq_length, -1, self.hidden_size)
         vlm_attention_mask = vlm_attention_mask.view(batch_size, seq_length, -1)
-        
-        # vlm_attention_mask = vlm_attention_mask[..., :80]
-        
-        # input_embeds should be in shape [batch*seq, token_num, token_dim]
-
-        # get language embedded stacked outputs from Q-former
-        # get_embeddings_func = self.llm_model.get_input_embeddings()
-        # out, multimodal_attention_mask = self.vlm_adapter(input_dicts, get_embeddings_func, train=train)
-
-        # llm_tokens = torch.randn(batch_size, 4, 30, 2048).to(states.device) # [batch, seq_len, token_num, hidden_dim]
-
-        # vlm_tokens = torch.cat((image_tokens, llm_tokens), dim=-2)      # [batch, seq_len, token_num, hidden_dim]
 
         rtg_embeddings = self.embed_return(returns_to_go).unsqueeze(2)
         vlm_embeddings = self.embed_vlm_state(vlm_states)
@@ -453,7 +432,6 @@ class PromptVLM(nn.Module):
         llm_inputs = self.embed_ln(llm_embeddings).view(batch_size, -1, self.hidden_size)
 
         rtg_attention_mask = attention_mask.unsqueeze(-1).repeat(1, 1, rtg_embeddings.shape[-2])
-        # vlm_attention_mask = attention_mask.unsqueeze(-1).repeat(1, 1, vlm_embeddings.shape[-2])
         goal_attention_mask = attention_mask.unsqueeze(-1).repeat(1, 1, goal_embeddings.shape[-2])
         state_attention_mask = torch.cat((goal_attention_mask, vlm_attention_mask), dim=-1)
         action_attention_mask = attention_mask.unsqueeze(-1).repeat(1, 1, action_embeddings.shape[-2])

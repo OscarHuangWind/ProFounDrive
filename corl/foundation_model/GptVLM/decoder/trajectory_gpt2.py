@@ -534,14 +534,6 @@ class GPT2Model(GPT2PreTrainedModel):
         self.qkv_bias = True
         self.qk_scale = None
         
-        # self.h = nn.ModuleList([
-        #     Block(
-        #         config.n_ctx, config, scale=True, qkv_bias=self.qkv_bias, qk_scale=self.qk_scale
-        #         )
-        #     for _ in range(config.n_layer)]
-        #     )
-       
-        
         self.h = nn.ModuleList([
             Block(
                 config.n_positions, config, scale=True, qkv_bias=self.qkv_bias, qk_scale=self.qk_scale
@@ -995,21 +987,6 @@ class GPT2LMHeadModel(GPT2PreTrainedModel):
             hidden_states = hidden_states.to(self.lm_head.weight.device)
 
         lm_logits = self.lm_head(hidden_states['last_hidden_state'])
-
-        # loss = None
-        # if labels is not None:
-        #     # move labels to correct device to enable model parallelism
-        #     labels = labels.to(lm_logits.device)
-        #     # Shift so that tokens < n predict n
-        #     shift_logits = lm_logits[..., :-1, :].contiguous()
-        #     shift_labels = labels[..., 1:].contiguous()
-        #     # Flatten the tokens
-        #     loss_fct = CrossEntropyLoss()
-        #     loss = loss_fct(shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1))
-
-        # if not return_dict:
-        #     output = (lm_logits,) + transformer_outputs[1:]
-        #     return ((loss,) + output) if loss is not None else output
 
         return hidden_states, lm_logits
 

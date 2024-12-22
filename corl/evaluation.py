@@ -517,7 +517,6 @@ def main():
 
     # simulation setup
     
-    ############# for home pc ##############3
     parser.add_argument('--routes',
                         help='Name of the route to be executed. Point to the route_xml_file to be executed.',
                         default='/home/oscar/Dropbox/VisionFoundationVehicle/leaderboard/data/validation_routes/routes_town05_short.xml')
@@ -546,69 +545,6 @@ def main():
     parser.add_argument("--save-path", type=str,
                         default='/home/oscar/Dropbox/VisionFoundationVehicle/data/eval',
                         help="Path to save the result")
-    
-    ##################### for server ##################
-    # parser.add_argument('--routes',
-    #                     help='Name of the route to be executed. Point to the route_xml_file to be executed.',
-    #                     default='/home/automan/Dropbox/VisionFoundationVehicle/leaderboard/data/validation_routes/routes_town07_short.xml')
-    # parser.add_argument('--weather',
-    #                     type=str, default='FogyySunset',
-    #                     help='Name of the weahter to be executed',
-    #                     )
-    # parser.add_argument('--scenarios',
-    #                     help='Name of the scenario annotation file to be mixed with the route.',
-    #                     default='/home/automan/Dropbox/VisionFoundationVehicle/leaderboard/data/scenarios/town07_all_scenarios.json')
-    # parser.add_argument('--repetitions',
-    #                     type=int,
-    #                     default=1,
-    #                     help='Number of repetitions per route.')
-     
-    # parser.add_argument("-a", "--agent", type=str, help="Path to Agent's py file to evaluate",
-    #                     default="/home/automan/Dropbox/VisionFoundationVehicle/corl/carla_evaluate/corl_agent.py")
-    # parser.add_argument("--agent-config", type=str, help="Path to Agent's configuration file",
-    #                     default="/home/automan/Dropbox/VisionFoundationVehicle/corl/corl_config.py")
-   
-    # parser.add_argument("--track", type=str, default='SENSORS', help="Participation track: SENSORS, MAP")
-    # parser.add_argument('--resume', type=bool, default=False, help='Resume execution from last checkpoint?')
-    # parser.add_argument("--checkpoint", type=str,
-    #                     default='/home/automan/Dropbox/VisionFoundationVehicle/results/corl_result_town07_pretrained_2024318225858_task3_95.3_conservative_all_record.json',
-    #                     help="Path to checkpoint used for saving statistics and resuming")
-    # parser.add_argument("--save-path", type=str,
-    #                     default='/home/automan/Dropbox/VisionFoundationVehicle/data/eval',
-    #                     help="Path to save the result")
-
-
-
-    # parser.add_argument('--routes',
-    #                     help='Name of the route to be executed. Point to the route_xml_file to be executed.',
-    #                     required=True)
-    # parser.add_argument('--weather',
-    #                     type=str, default='none',
-    #                     help='Name of the weahter to be executed',
-    #                     )
-    # parser.add_argument('--scenarios',
-    #                     help='Name of the scenario annotation file to be mixed with the route.',
-    #                     required=True)
-    # parser.add_argument('--repetitions',
-    #                     type=int,
-    #                     default=1,
-    #                     help='Number of repetitions per route.')
-
-    # agent-related options
-    # parser.add_argument("-a", "--agent", type=str, help="Path to Agent's py file to evaluate",
-    #                     default="/home/oscar/Dropbox/InterFuser/leaderboard/team_code/auto_pilot.py")
-    # parser.add_argument("--agent-config", type=str, help="Path to Agent's configuration file",
-    #                     default="/home/oscar/Dropbox/InterFuser/data_collection/yamls/weather-0.yaml")
-
-    
-    # parser.add_argument("-a", "--agent", type=str, help="Path to Agent's py file to evaluate", required=True)
-    # parser.add_argument("--agent-config", type=str, help="Path to Agent's configuration file", default="")
-
-    # parser.add_argument("--track", type=str, default='SENSORS', help="Participation track: SENSORS, MAP")
-    # parser.add_argument('--resume', type=bool, default=False, help='Resume execution from last checkpoint?')
-    # parser.add_argument("--checkpoint", type=str,
-    #                     default='./simulation_results.json',
-    #                     help="Path to checkpoint used for saving statistics and resuming")
 
     arguments = parser.parse_args()
 

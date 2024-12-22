@@ -14,9 +14,6 @@ Created on Wed Mar 13 16:18:17 2024
 @author: oscar
 """
 
-# Code backbone: Decision Transformer https://github.com/kzl/decision-transformer/
-# Decision Transformer License: https://github.com/kzl/decision-transformer/blob/master/LICENSE.md
-
 import numpy as np
 import torch
 import torch.nn as nn
@@ -65,7 +62,6 @@ class PromptGPT(nn.Module):
         #### load pretrained GPT model ######
         gpt_config = transformers.GPT2Config(vocab_size=1, n_embd=hidden_size, **kwargs)
         llm_model = GPT2Model(gpt_config)
-        # llm_model = GPT2LMHeadModel(gpt_config)
         
         if self.config.mode == 'onboard':
             if self.config.decoder == 'GPT2-xl':
@@ -81,9 +77,6 @@ class PromptGPT(nn.Module):
             self.embed_ln = nn.LayerNorm(self.hidden_size, dtype=torch.bfloat16)
             self.embed_timestep = nn.Embedding(max_emb_size, self.hidden_size, dtype=torch.bfloat16)
 
-            # self.project_action = torch.nn.Linear(embed_size, self.hidden_size, dtype=torch.bfloat16)
-            # self.project_rtg = torch.nn.Linear(embed_size, self.hidden_size, dtype=torch.bfloat16)
-            
             self.predict_class = nn.Sequential(
                 *(
                     [nn.Linear(self.hidden_size, self.act_dim, dtype=torch.bfloat16)] + 
@@ -104,9 +97,6 @@ class PromptGPT(nn.Module):
             self.embed_ln = nn.LayerNorm(self.hidden_size, dtype=torch.float32)
             self.embed_timestep = nn.Embedding(max_emb_size, self.hidden_size, dtype=torch.float32)
             
-            # self.project_action = torch.nn.Linear(embed_size, self.hidden_size, dtype=torch.float32)
-            # self.project_rtg = torch.nn.Linear(embed_size, self.hidden_size, dtype=torch.float32)
-    
             self.predict_class = nn.Sequential(
                 *(
                     [nn.Linear(self.hidden_size, self.act_dim, dtype=torch.float32)] + 
@@ -135,12 +125,7 @@ class PromptGPT(nn.Module):
         # get language embedded stacked outputs from Q-former
         get_embeddings_func = self.llm_model.get_input_embeddings()
         out, multimodal_attention_mask = self.vlm_adapter(input_dicts, get_embeddings_func, train=train)
-        
-        # time embeddings are treated similar to positional embeddings
-        # condition_state_embeddings = condition_state_embeddings + time_embeddings
-        # image_state_embeddings = image_state_embeddings + time_embeddings
 
-        # condition_state_embeddings = self.embed_condition_state(condition_states)
         rtg_embeddings = self.embed_return(returns_to_go).unsqueeze(2)
         vlm_embeddings = self.embed_vlm_state(out)
         goal_embeddings = self.embed_goal_state(target_waypoints).unsqueeze(2)
@@ -154,13 +139,6 @@ class PromptGPT(nn.Module):
 
         llm_embeddings = torch.cat((rtg_embeddings, state_embeddings, action_embeddings), dim=-2)
         llm_inputs = self.embed_ln(llm_embeddings).view(batch_size, -1, self.hidden_size)
-
-        # KDP attention_mask B Prompt_len * seq_len
-        # prompt_attention_mask = torch.ones((batch_size, seq_length)).to(states.device)
-        # prompt_len = int(self.prompt_len / 2) # half for key and value
-        # prompt_attention_mask = prompt_attention_mask.repeat(1, prompt_len)
-        # rtg_attention_mask = attention_mask.repeat(1, rtg_embeddings.shape[-2])
-        # action_attention_mask = attention_mask.repeat(1, action_embeddings.shape[-2])
 
         rtg_attention_mask = attention_mask.unsqueeze(-1).repeat(1, 1, rtg_embeddings.shape[-2])
         goal_attention_mask = attention_mask.unsqueeze(-1).repeat(1, 1, goal_embeddings.shape[-2])
@@ -193,16 +171,6 @@ class PromptGPT(nn.Module):
 
         x = x.reshape(batch_size, seq_length, -1, self.hidden_size).permute(0, 2, 1, 3)
 
-        # if prompt is None:
-        #     # reshape x so that the second dimension corresponds to the original
-        #     # returns (0), states (1), or actions (2); i.e. x[:,1,t] is the token for s_t
-        #     x = x.reshape(batch_size, seq_length, -1, self.hidden_size).permute(0, 2, 1, 3)
-        # else:
-        #     x = x.reshape(batch_size, seq_length, -1, self.hidden_size).permute(0, 2, 1, 3)
-        
-        # note here all the prompt are pre-append to x, but when return only return the last [:, -seq_length:, :] corresponding to batch data
-        # get predictions
-        # return_preds = self.predict_return(x[:,1])[:, -seq_length:, :]  # predict next return given state and action
         action_preds = self.predict_class(x[:,-2])[:, -seq_length:, :]  # predict next action given state
                 
         if torch.any(torch.isnan(action_preds)):
@@ -230,13 +198,6 @@ class PromptGPT(nn.Module):
             # pad all tokens to sequence length
             attention_mask = torch.cat([torch.zeros(self.seq_len-actions.shape[1]), torch.ones(actions.shape[1])])
             attention_mask = attention_mask.to(dtype=torch.float32, device=timesteps.device).reshape(1, -1)
-
-            # actions = torch.cat(
-            #     [torch.zeros((actions.shape[0], 
-            #                   self.seq_len - actions.shape[1], 
-            #                   self.act_dim),
-            #                  device=actions.device), actions],
-            #     dim=1).to(dtype=torch.float64)
            
             actions = torch.cat(
                 [torch.zeros((actions.shape[0], 

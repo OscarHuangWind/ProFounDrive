@@ -12,7 +12,7 @@ import torch.nn as nn
 import copy
 import numpy as np
 
-class DrivePrompt(nn.Module):
+class DSPrompt(nn.Module):
     def __init__(self, emb_d, n_tasks, prompt_param, key_dim=768, mode='', device='cuda:0'):
         super().__init__()
         self.task_count = -1

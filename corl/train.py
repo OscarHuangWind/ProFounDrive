@@ -3,32 +3,19 @@ os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
 import time
 import json
+import tqdm
 import random
-import pathlib
 import datetime
 import argparse
 import numpy as np
-#from tqdm import tqdm
-import tqdm
-from diskcache import Cache
-import matplotlib.pyplot as plt
-
-from timm.optim import create_optimizer
-from timm.scheduler import create_scheduler
 
 import torch
-import torch.optim as optim
-import torch.distributed as dist
 import torch.multiprocessing as mp
-from torch.utils.data import DataLoader
 from torch.distributed.elastic.multiprocessing.errors import record
-from torch.distributed.optim import ZeroRedundancyOptimizer
-
-from dataset_preprocess.data import CARLA_Data
-from dataset_preprocess.datasets import build_continual_dataloader
-from corl_config import GlobalConfig
 
 from engine import Engine
+from corl_config import GlobalConfig
+from dataset_preprocess.datasets import build_continual_dataloader
 from foundation_model.gpt_vla_agent import init_gpt_vla
 from foundation_model.llama_vla_agent import init_llama_vla
 
@@ -71,28 +58,9 @@ def main():
                         help='Training interpolation (random, bilinear, bicubic default: "bicubic")')
     
     # Data parameters
-    # parser.add_argument('--data-path',  default=r'/media/spyder/94714162-4d32-4b72-b5d5-74dc17149d9c/wenhui_data/InterFuser', help='Root directory of your training data')
-    # parser.add_argument('--data-path',  default=r'/home/users/ntu/wenhui00/scratch/datasets/CarlaData/InterFuser', help='Root directory of your training data')
-    # parser.add_argument('--data-path',  default=r'/home/users/ntu/songyan0/scratch/datasets/CarlaData/InterFuser', help='Root directory of your training data')
-    # parser.add_argument('--data-path',  default=r'/media/spyder/Samsung_T5/CarlaData/InterFuser', help='Root directory of your training data')
-    # parser.add_argument('--data-path',  default=r'/media/oscar/Samsung_T5/CarlaData/InterFuser', help='Root directory of your training data')
-    # parser.add_argument('--data-path',  default=r'/media/automan-apollo/Samsung_T5/CarlaData/InterFuser', help='Root directory of your training data')
-    # parser.add_argument('--data-path',  default=r'/media/oscar/TOSHIBA/CarlaData/InterFuser', help='Root directory of your training data')
-    # parser.add_argument('--data-path', default=r'/media/spyder/94714162-4d32-4b72-b5d5-74dc17149d9c/wenhui_data/InterFuser')
-    # parser.add_argument('--data-path',  default=r'/media/automan/Samsung_T5/CarlaData/InterFuser', help='Root directory of your training data')
     parser.add_argument('--data-path',  default=r'/home/users/ntu/shanhelo/scratch/datasets/carlacorl', help='Root directory of your training data')
-
-    # parser.add_argument('--save-path', type=str, default='/home/oscar/Dropbox/VisionFoundationVehicle/corl/output', help='ckpt to load.')
-    # parser.add_argument('--save-path', type=str, default='/home/users/ntu/wenhui00/scratch/projects/VLMDrive-Pro/corl/output/', help='ckpt to load.')
-    # parser.add_argument('--save-path', type=str, default='/home/users/ntu/songyan0/scratch/projects/VLMDrive-Pro/corl/output/', help='ckpt to load.')
     parser.add_argument('--save-path', type=str, default='/home/users/ntu/shanhelo/scratch/wenhui_projects/VLMDrive-Pro/corl/output/', help='ckpt to load.')
-
-    # parser.add_argument('--output_dir', default='/home/automan-apollo/Dropbox/VisionFoundationVehicle/corl/output', help='path where to save, empty for no saving')
-    # parser.add_argument('--output_dir', default='/home/users/ntu/wenhui00/scratch/projects/VLMDrive-Pro/corl/mobilevlm', help='path where to save, empty for no saving')
-    # parser.add_argument('--output_dir', default='/home/oscar/Dropbox/VisionFoundationVehicle/corl/output', help='path where to save, empty for no saving')
-    # parser.add_argument('--output_dir', default='/home/users/ntu/songyan0/scratch/projects/VLMDrive-Pro/corl/output/', help='path where to save, empty for no saving')
     parser.add_argument('--output_dir', default='/home/users/ntu/shanhelo/scratch/wenhui_projects/VLMDrive-Pro/corl/output/', help='path where to save, empty for no saving')    
-
     parser.add_argument('--dataset_mode', default='Split-sequential', type=str, help='dataset load mode, 1.all 2. all-Split 3.Split-sequential, 4.sequential')
     parser.add_argument('--logdir', type=str, default='log', help='Directory to log data to.')
     parser.add_argument('--load-pretrain', type=bool, default=False, help='ckpt to load.')
@@ -174,24 +142,8 @@ def main():
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
     print(f"Total training time: {total_time_str}")
 
-
-def attach_debugger():
-    import debugpy
-    debugpy.listen(5678)
-    print("Waiting for debugger!")
-    debugpy.wait_for_client()
-    print("Attached!")
-
-
 if __name__ == "__main__":
-    # attach_debugger()
-    # The default method fork can run into deadlocks.
-    # To use the dataloader with multiple workers forkserver or spawn should be used.
     
-    # for windows
-    # import multiprocessing
-    # multiprocessing.set_start_method("spawn")
-    
-    # mp.set_start_method('fork')
+    mp.set_start_method('fork')
     print("Start method of multiprocessing:", mp.get_start_method())
     main()

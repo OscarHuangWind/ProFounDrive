@@ -5,29 +5,19 @@ Created on Thu Nov 30 10:51:09 2023
 
 @author: oscar
 """
-
 import os
-import ujson
-from skimage.transform import rotate
-import numpy as np
-from torch.utils.data import Dataset
-from tqdm import tqdm
 import sys
-from pathlib import Path
 import cv2
-import random
-from copy import deepcopy
-import io
 import torch
+import ujson
+import random
+import numpy as np
 import pandas as pd
+from tqdm import tqdm
 from enum import Enum
-import matplotlib.pyplot as plt
-
-from corl.utils import get_vehicle_to_virtual_lidar_transform, get_vehicle_to_lidar_transform, get_lidar_to_vehicle_transform, get_lidar_to_bevimage_transform
-
-from PIL import Image
-# from foundation_model.vision_encoder.segformer import SegEncoder
-# from foundation_model.MobileVLM.mask2former import SegEncoder
+from pathlib import Path
+from copy import deepcopy
+from torch.utils.data import Dataset
 
 class RoadOption(Enum):
     """
@@ -57,7 +47,6 @@ class CARLA_Data(Dataset):
         self.inv_augment_prob = np.array(config.inv_augment_prob)
         # self.converter = np.uint8(config.converter)
                 
-        self.max_speed = 6.0 # m/s 
         self.reward_scale = 100
 
         self.images = []
@@ -74,24 +63,15 @@ class CARLA_Data(Dataset):
         self.reference_paths = []
         self.ego_paths = []
         self.target_waypoints = []
-        # self.target_velocities = []
         self.masks = []
 
-        # self.segformer = SegEncoder(config.device)
         for sub_root in tqdm(root, file=sys.stdout):
-            # sub_root = Path(sub_root + '/data/') # data folder path 
             sub_root = Path(sub_root) # data folder path 
-            # list sub-directories in root
             root_files = os.listdir(sub_root) # index the data folder
             routes = [folder for folder in root_files if not os.path.isfile(os.path.join(sub_root,folder))]
             self.route_num = len(routes)
             for route in tqdm(routes):
                 route_dir = sub_root / route
-                # seg_folder = '/segmentation_front_HD/'
-                # seg_dir = str(route_dir) + seg_folder
-                # if (not os.path.isdir(seg_dir)):
-                #     print('Created dir:', seg_dir)
-                #     os.makedirs(seg_dir, exist_ok=True)
                 if config.image_type == 'segmentation':
                     prefix = "segmentation_front_HD"
                 else:
@@ -139,13 +119,6 @@ class CARLA_Data(Dataset):
                         print("Error loading file: ", str(image_i, encoding='utf-8'))
                     image_i = scale_image_cv2(cv2.cvtColor(image_i, cv2.COLOR_BGR2RGB), self.scale)
                     image_i = cv2.resize(image_i, tuple(self.img_resolution))
-                    
-                    # segmentation_image = self.segformer.forward(image_i)
-                    # cv2.imwrite(os.path.join(str(route_dir) + seg_folder, ('%04d.jpg' % (seq))), segmentation_image)
-                    # # im = Image.fromarray(segmentation_image)
-                    # # im.save(os.path.join(str(route_dir) + seg_folder, ('%04d.jpg' % (seq))))
-                    # del segmentation_image
-                    # continue
                     image_i = np.transpose(image_i, (2, 0, 1))
 
                     bike = measurement_i['is_bike_present']
@@ -349,9 +322,7 @@ class CARLA_Data(Dataset):
                 done_idx = min(int(cum_idx), done_idx) #redefine the done_idx
                 break
         idx = done_idx - self.seq_len
-        # if done_idx >= 3542:
-        #     print(self.done_idxs, index, cum_idx, idx, done_idx)
-        
+
         states = torch.tensor(np.array(self.images[idx:done_idx]), dtype=torch.float32) #.reshape(self.seq_len, -1) # (block_size, 4*256*256)
         if self.config.model == 'GPT':
             states = states / 255.
@@ -374,9 +345,6 @@ class CARLA_Data(Dataset):
         ego_path = torch.tensor(self.ego_paths[done_idx])
         traj_len = ego_path.shape[0]
         ego_path = torch.cat([ego_path, torch.ones((self.pred_len - traj_len, ego_path.shape[1])) * ego_path[-1]], dim=0)
-
-        # if torch.max(ego_path) > 30 or torch.min(ego_path) < -30:
-        #     print('wtf')
 
         pedals = np.ones_like(throttles)
         pedals[brakes == True] = -1
@@ -406,8 +374,6 @@ def get_depth(data):
 
     normalized = np.dot(data, [65536.0, 256.0, 1.0]) 
     normalized /=  (256 * 256 * 256 - 1)
-    # in_meters = 1000 * normalized
-    #clip to 50 meters
     normalized = np.clip(normalized, a_min=0.0, a_max=0.05)
     normalized = normalized * 20.0 # Rescale map to lie in [0,1]
 

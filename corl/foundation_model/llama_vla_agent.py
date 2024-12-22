@@ -21,12 +21,9 @@ from transformers import AutoTokenizer, LlamaConfig
 from .MobileVLM.mask2former import SegEncoder
 
 from prompt.prompt_baseline import CodaPrompt, DualPrompt, L2P
-from prompt.drive_prompt import DrivePrompt
+from prompt.driving_skill_prompt import DSPrompt
 
 from .MobileVLM.mobilevlm import PromptVLM
-# from transformers import LlamaTokenizer
-# from .MobileVLM.mobilevlm import load_pretrained_model
-# from .MobileVLM.mobilellama import MobileLlamaForCausalLM
 
 class LayerNorm(nn.LayerNorm):
     """Subclass torch's LayerNorm to handle fp16."""
@@ -117,7 +114,7 @@ class MobileVLA_Agent(nn.Module):
         elif self.prompt_name == 'drive':
             print('Drive Prompt')
             prompt_param = [config.num_tasks, [config.pool_size, config.e_prompt_len, config.top_k, config.attended_p]]
-            self.prompt = DrivePrompt(self.encoder_embed_dim, prompt_param[0], prompt_param[1], key_dim=self.hidden_dim, mode= config.mode, device=config.device)
+            self.prompt = DSPrompt(self.encoder_embed_dim, prompt_param[0], prompt_param[1], key_dim=self.hidden_dim, mode= config.mode, device=config.device)
         else:
             print('No prompt: ViT + DT')
             self.prompt = None
