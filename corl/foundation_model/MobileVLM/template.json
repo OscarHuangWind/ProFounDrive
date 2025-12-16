@@ -1,0 +1,29 @@
+{
+    "lat-instruction":
+        "The lateral decision choices are: Left, Right, Straight, Keep Lane, ChangeLane Left, ChangeLane Right.",
+    "long-instrunction":
+        "The longitudinal decision choices are: Accelerate, Decelerate, Stop.",
+    "objects": 
+    [
+        "Notice the objects in front of you.",
+        "Pay attention to the objects.",
+        "Mind objects, please drive safely.",
+        "Be aware of the objects ahead of you!",
+        "objects."
+    ],
+    "non-object":
+    [
+        "Please drive to the goal location.",
+        "Make your driving decisions based on the current situation!",
+        "As an experience driver, can you tell me which decisions would you choose?",
+        "The traffic is unobstructed.",
+        "How long does the green light typically stay on for this street?"
+    ],
+    "general":
+    [
+        "Do keep in mind that the lateral decisions should align with the target waypoint.",
+        "Ensure that the lateral decisions align with the goal location.",
+        "The coordinates of the destination should be consistent with your lateral decisions.",
+        "The target location should have a significant impact on your lateral decisions."
+    ]
+}

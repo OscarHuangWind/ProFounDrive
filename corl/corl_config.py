@@ -5,8 +5,6 @@ class GlobalConfig:
 	# Data
     seq_len = 4 # input timesteps
     pred_len = 6 # future waypoints planned
-    scale = 1 # image pre-processing
-    img_width = 320 # important this should be consistent with scale, e.g. scale = 1, img_width 320, scale=2, image_width 640
     start_task = 0 # the start task id for training
     num_tasks = 3 #number of tasks, 1 for joint training
     task_id = 3 #task id for close-loop evaluation
@@ -93,10 +91,12 @@ class GlobalConfig:
 
     ## wandb parameters
     dont_log_wandb = True
-    project = "ProFounDrive-mobilevla"
-    wandb_group = "MobileVLA"
+    project = "ProFounDrive-gptvla"
+    wandb_group = "GPTVLA"
 
-    # # Domian Randomization
+    # Domian Randomization
+    scale = 1 # image pre-processing
+    img_width = 320 # important this should be consistent with scale, e.g. scale = 1, img_width 320, scale=2, image_width 640
     augment = True
     inv_augment_prob = 0.1 # Probablity that data augmentation is applied is 1.0 - inv_augment_prob
     aug_max_rotation = 20 # degree

@@ -59,9 +59,9 @@ def main():
                         help='Training interpolation (random, bilinear, bicubic default: "bicubic")')
     
     # Data parameters
-    parser.add_argument('--data-path',  default=r'/home/automan-apollo/profoundrive_tmp/CarlaCORL', help='Root directory of your training data')
-    parser.add_argument('--save-path', type=str, default='/home/automan-apollo/Dropbox/VisionFoundationVehicle/corl/output', help='ckpt to load.')
-    parser.add_argument('--output_dir', default='/home/automan-apollo/Dropbox/VisionFoundationVehicle/corl/output', help='path where to save, empty for no saving')    
+    parser.add_argument('--data-path',  default=r'', help='Root directory of your training data')
+    parser.add_argument('--save-path', type=str, default='', help='ckpt to load.')
+    parser.add_argument('--output_dir', default='', help='path where to save, empty for no saving')    
     parser.add_argument('--dataset_mode', default='Split-sequential', type=str, help='dataset load mode, 1.all 2. all-Split 3.Split-sequential, 4.sequential')
     parser.add_argument('--logdir', type=str, default='log', help='Directory to log data to.')
     parser.add_argument('--load-pretrain', type=bool, default=True, help='ckpt to load.')
