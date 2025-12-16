@@ -305,8 +305,8 @@ class PromptVLM(nn.Module):
         self.img_state_dim = self.img_resolution**2 * 3
         
         ####### replace this model path with yours #########
-        model_path = "mtgv/MobileVLM_V2-1.7B" 
-
+        # model_path = "mtgv/MobileVLM_V2-1.7B" 
+        model_path = '/home/automan-apollo/Dropbox/VisionFoundationVehicle/corl/realworld_evaluate/mobilevlm_v2-2.finetune'
         self.tokenizer, self.llm_model, self.image_processor, _ = self.load_pretrained_model(model_path, False, False)
         self.vlm_adapter = VLMAdapter(self.tokenizer)
         

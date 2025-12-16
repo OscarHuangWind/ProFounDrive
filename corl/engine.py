@@ -161,7 +161,6 @@ class Engine(object):
         wandb.login(key="8726d9823ea1bc5190c32369f254d61eab02a17b")
 
         for task_id in np.arange(self.config.start_task, self.config.num_tasks):
-            print(f"Start training for {self.args.epochs[task_id]} epochs over task {task_id}")
 
             # set task id for model (needed for prompting)
             try:
@@ -183,7 +182,8 @@ class Engine(object):
 
             # Freeze the parameters after the first task
             if train:
-  
+                print(f"Start training for {self.args.epochs[task_id]} epochs over task {task_id}")
+
                 if task_id > 0:
                     try:
                         if self.model.module.prompt is not None:
@@ -298,12 +298,14 @@ class Engine(object):
                                 
                             torch.save(state_dict, checkpoint_path)
             else:
+                print(f"Start Validation over {task_id+1} tasks.")
                 epoch = 0
                 output_dir = None
-                # folder_name = self.config.prompt_name + '_' + self.config.encoder\
-                #                     + '_' + self.config.decoder + '_seed' + str(self.args.seed) + '_joint_' + str(now.year) + str(now.month) + str(now.day) + str(now.hour) + str(now.minute) + str(now.second)
-                # output_dir = os.path.join(self.args.output_dir, folder_name)
-                # os.makedirs(output_dir, exist_ok=True)
+                folder_name = self.config.prompt_name + '_' + self.config.encoder\
+                                    + '_' + self.config.decoder + '_seed' + str(self.args.seed) + '_' + str(now.year) + str(now.month) + str(now.day) + str(now.hour) + str(now.minute) + str(now.second)
+                output_dir = os.path.join(self.args.output_dir, folder_name)
+                os.makedirs(output_dir, exist_ok=True)
+                print('output directory is:', output_dir)
             
             print('Final Evaluation')
             self.evaluate_till_now(self.model, self.data_loader, self.device,

@@ -27,8 +27,9 @@ def main():
     parser = argparse.ArgumentParser()
     
     # Train parameters
-    parser.add_argument('--train', default=True, type=str, help='Batch size for one GPU. When training with multiple GPUs the effective batch size will be batch_size*num_gpus')
+    parser.add_argument("--train", action="store_true")
     parser.add_argument('--batch_size', default=16, type=int, help='Batch size for one GPU. When training with multiple GPUs the effective batch size will be batch_size*num_gpus')
+    # parser.add_argument('--batch_size', default=8, type=int, help='Batch size for one GPU. When training with multiple GPUs the effective batch size will be batch_size*num_gpus')
     parser.add_argument('--epochs', default=[70, 50, 50], help='Number of train epochs.') # [70, 50, 50]
     parser.add_argument('--val_every', type=int, default=5, help='At which epoch frequency to validate.')
 
@@ -58,12 +59,12 @@ def main():
                         help='Training interpolation (random, bilinear, bicubic default: "bicubic")')
     
     # Data parameters
-    parser.add_argument('--data-path',  default=r'/home/users/ntu/shanhelo/scratch/datasets/carlacorl', help='Root directory of your training data')
-    parser.add_argument('--save-path', type=str, default='/home/users/ntu/shanhelo/scratch/wenhui_projects/ProFounDrive/corl/output/', help='ckpt to load.')
-    parser.add_argument('--output_dir', default='/home/users/ntu/shanhelo/scratch/wenhui_projects/ProFounDrive/corl/output/', help='path where to save, empty for no saving')    
+    parser.add_argument('--data-path',  default=r'/home/automan-apollo/profoundrive_tmp/CarlaCORL', help='Root directory of your training data')
+    parser.add_argument('--save-path', type=str, default='/home/automan-apollo/Dropbox/VisionFoundationVehicle/corl/output', help='ckpt to load.')
+    parser.add_argument('--output_dir', default='/home/automan-apollo/Dropbox/VisionFoundationVehicle/corl/output', help='path where to save, empty for no saving')    
     parser.add_argument('--dataset_mode', default='Split-sequential', type=str, help='dataset load mode, 1.all 2. all-Split 3.Split-sequential, 4.sequential')
     parser.add_argument('--logdir', type=str, default='log', help='Directory to log data to.')
-    parser.add_argument('--load-pretrain', type=bool, default=False, help='ckpt to load.')
+    parser.add_argument('--load-pretrain', type=bool, default=True, help='ckpt to load.')
     parser.add_argument('--start_epoch', type=int, default=0, help='Epoch to start with. Useful when continuing trainings via load_file.')
     parser.add_argument('--setting', type=str, default='min-3-town', help='What training setting to use. Options: '
                                                                    'all: Train on all towns no validation data. '
@@ -75,20 +76,20 @@ def main():
     parser.add_argument('--pin-mem', action='store_true',
                         help='Pin CPU memory in DataLoader for more efficient (sometimes) transfer to GPU.')
 
-    # VLM parameters
-    parser.add_argument('--vlm_freeze', default='prompt_vlm', type=str, help='freeze vlm model')
+    # MobileVLM parameters
+    parser.add_argument('--vlm_freeze', default='prompt_vlm', type=str, help='freeze entire vlm model if MobileVLM-based ProFounDrive')
 
-    # Vision encoder parameters
-    parser.add_argument('--encoder_freeze', default='vit_encoder', type=str, help='freeze part in encoder model')
-    parser.add_argument('--n_layer', type=int, default=4, help='Number of transformer layers used in the transfuser')
+    # GPT Vision encoder parameters
+    parser.add_argument('--encoder_freeze', default='vit_encoder', type=str, help='freeze vision encoder model if GPT-based ProFounDrive')
+    parser.add_argument('--n_layer', type=int, default=4, help='Number of transformer layers used in ProFounDrive')
 
-    # Language model parameters
-    parser.add_argument('--llm_freeze', default='llm_model', type=str, help='freeze language model')
-    parser.add_argument('--qformer_freeze', default='vlm_adapter', type=str, help='freeze qformer model')
-    parser.add_argument('--decoder_freeze', default='prompt_gpt', type=str, help='freeze part in decoder model')
+    # GPT Language model parameters
+    parser.add_argument('--llm_freeze', default='llm_model', type=str, help='freeze language model if GPT-based ProFounDrive')
+    parser.add_argument('--qformer_freeze', default='vlm_adapter', type=str, help='freeze qformer model if GPT-based ProFounDrive')
+    parser.add_argument('--decoder_freeze', default='prompt_gpt', type=str, help='freeze decoder model (including llm and adapters) if GPT-based ProFounDrive')
 
     # prompt parameters
-    parser.add_argument('--prompt_freeze', default='prompt_adapter', type=str, help='freeze part in encoder model')
+    parser.add_argument('--prompt_freeze', default='prompt_adapter', type=str, help='freeze prompt adapter')
 
     args = parser.parse_args()
     args.task_seq = ['town07', 'town04', 'town03']

@@ -5,6 +5,8 @@ class GlobalConfig:
 	# Data
     seq_len = 4 # input timesteps
     pred_len = 6 # future waypoints planned
+    scale = 1 # image pre-processing
+    img_width = 320 # important this should be consistent with scale, e.g. scale = 1, img_width 320, scale=2, image_width 640
     start_task = 0 # the start task id for training
     num_tasks = 3 #number of tasks, 1 for joint training
     task_id = 3 #task id for close-loop evaluation
@@ -12,12 +14,12 @@ class GlobalConfig:
     image_type = 'segmentation'
     # image_type = 'rgb'
     label = 'path_planning'
-    decision = 'dual'
+    decision = 'dual' # longitudinal and lateral
     
     # Prompt Parameter
     pool_size = 9
     prompt_name = 'drive' #'l2p' #dual #coda #drive
-    prompt_depth = 1 
+    prompt_depth = 1 # 0 for l2p and 1 for l2p++
     e_prompt_len = 10 
     g_prompt_len = 10 
     top_k = 1 
@@ -86,7 +88,8 @@ class GlobalConfig:
     n_head = 25
     dropout = 0.1
     
-    model_path = 'to be filled in'
+    # model_path = 'to be filled in'
+    model_path = '/home/automan-apollo/Dropbox/seg_global_complex_language/drive_ViT-CLIP_MobileLLaMA_seed3407_fixlabelbug_fiximagebug_drama_poolingtoken_mobilevlm_coretemplate_mask2former_global_batch16_query16_town07_town04_town03_0.001_0.005_705050_10prompt_2024941462/town03_task3_final_checkpoint.pth' #
 
     ## wandb parameters
     dont_log_wandb = True
@@ -94,9 +97,9 @@ class GlobalConfig:
     wandb_group = "MobileVLA"
 
     # # Domian Randomization
-    # augment = True
-    # inv_augment_prob = 0.1 # Probablity that data augmentation is applied is 1.0 - inv_augment_prob
-    # aug_max_rotation = 20 # degree
+    augment = True
+    inv_augment_prob = 0.1 # Probablity that data augmentation is applied is 1.0 - inv_augment_prob
+    aug_max_rotation = 20 # degree
     
     # Controller
     turn_KP = 1.25

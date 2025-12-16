@@ -57,7 +57,7 @@ class PromptGPT(nn.Module):
         # dt_model = DecisionTransformerModel.from_pretrained("edbeeching/decision-transformer-gym-hopper-medium")
         
         #### load pretrained Q-former ####
-        self.vlm_adapter = VLMAdapter( num_token_queries=16, llm_hidden_dim=self.hidden_size)
+        self.vlm_adapter = VLMAdapter(num_token_queries=16, llm_hidden_dim=self.hidden_size)
 
         #### load pretrained GPT model ######
         gpt_config = transformers.GPT2Config(vocab_size=1, n_embd=hidden_size, **kwargs)
