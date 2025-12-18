@@ -231,18 +231,19 @@ class Engine(object):
                     {'params': [p for n, p in self.model.named_parameters() if ('prompt' in n) and p.requires_grad],
                       'lr': self.args.lr_prompt},
                 ]
+
             optimizer = torch.optim.AdamW(params_dict, lr=self.args.lr, weight_decay=1e-5)
             lr_scheduler = OneCycleLR(optimizer=optimizer, max_lr= [self.args.lr_max,  self.args.lr_prompt_max], #0.001, 0.01 #0.00001, 0.0001 for 84 prompts
                                       steps_per_epoch=len(self.data_loader[task_id]['train']),
                                       epochs=self.args.epochs[task_id], pct_start=0.3, cycle_momentum=False)
             
-            scaler = GradScaler()
+            scaler = GradScaler('cuda')
             ##################################################################
             
             if train:
                 
                 folder_name = self.config.prompt_name + '_' + self.config.encoder\
-                                   + '_' + self.config.decoder + '_seed' + str(self.args.seed) + '_mask2former_batch' + str(self.args.batch_size) + '_' + self.task_name[0] + '_' + self.task_name[1] + '_' + self.task_name[2] + '_' + str(self.args.lr_max) + '_' + str(self.args.lr_prompt_max) + '_' + str(now.year) + str(now.month) + str(now.day) + str(now.hour) + str(now.minute) + str(now.second)
+                                   + '_' + self.config.decoder + '_seed' + str(self.args.seed) + '_' + str(self.config.image_type) + '_batch' + str(self.args.batch_size) + '_' + self.task_name[0] + '_' + self.task_name[1] + '_' + self.task_name[2] + '_' + str(self.args.lr_max) + '_' + str(self.args.lr_prompt_max) + '_' + str(now.year) + str(now.month) + str(now.day) + str(now.hour) + str(now.minute) + str(now.second)
                 output_dir = os.path.join(self.args.output_dir, folder_name)
                 
                 logdir = os.path.join(self.args.logdir, self.task_name[task_id], folder_name)
@@ -298,7 +299,7 @@ class Engine(object):
                                 }
 
                             if self.args.sched is not None and self.args.sched != 'constant':
-                                state_dict['lr_scheduler'] = self.lr_scheduler.state_dict()
+                                state_dict['lr_scheduler'] = lr_scheduler.state_dict()
                                 
                             torch.save(state_dict, checkpoint_path)
             else:
@@ -330,7 +331,7 @@ class Engine(object):
                     }
 
                 if self.args.sched is not None and self.args.sched != 'constant':
-                    state_dict['lr_scheduler'] = self.lr_scheduler.state_dict()
+                    state_dict['lr_scheduler'] = lr_scheduler.state_dict()
                     
                 torch.save(state_dict, checkpoint_path)
 
@@ -368,7 +369,7 @@ class Engine(object):
         
             df = df.append(recorded_data)
         
-        result_file = record_dir + '/' + self.task_name[task_id] + "_task" + str(task_id+1) + '_' + str(now.year) + str(now.month) + str(now.day) + str(now.hour) + str(now.minute) + str(now.second) + str(self.args.epochs) + "_attended_gpt2_trainall.csv"
+        result_file = record_dir + '/' + self.task_name[task_id] + "_task" + str(task_id+1) + '_' + str(now.year) + str(now.month) + str(now.day) + str(now.hour) + str(now.minute) + str(now.second) + str(self.args.epochs) + ".csv"
         df.to_csv(result_file)
         
         namespace = ['Route Decision']
@@ -413,7 +414,7 @@ class Engine(object):
                 }
 
             if record_dir:
-                result_file = record_dir + '/' + self.task_name[task_id] + "_task" + str(task_id+1) + '_' + str(now.year) + str(now.month) + str(now.day) + str(now.hour) + str(now.minute) + str(now.second) + str(self.args.epochs) + "_attended_gpt2_trainall.json"
+                result_file = record_dir + '/' + self.task_name[task_id] + "_task" + str(task_id+1) + '_' + str(now.year) + str(now.month) + str(now.day) + str(now.hour) + str(now.minute) + str(now.second) + '_epochs' + str(self.args.epochs) + ".json"
                 f = open(result_file, "w")
                 json.dump(data, f, indent=4)
                 f.close()

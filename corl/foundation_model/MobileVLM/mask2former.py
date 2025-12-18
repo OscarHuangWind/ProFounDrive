@@ -31,11 +31,11 @@ class SegEncoder():
             [0, 0, 142], [0, 0, 90], [0, 0, 230], [0, 80, 100], [128, 64, 64], [0, 0, 110],
             [0, 0, 70], [0, 0, 192], [32, 32, 32], [0, 0, 0], [0, 0, 0]])
 
-        # self.feature_extractor = AutoImageProcessor.from_pretrained("facebook/mask2former-swin-large-mapillary-vistas-semantic")
-        # self.model = Mask2FormerForUniversalSegmentation.from_pretrained("facebook/mask2former-swin-large-mapillary-vistas-semantic").cuda()
-
-        self.feature_extractor = AutoImageProcessor.from_pretrained("/home/automan-apollo/.cache/huggingface/hub/models--facebook--mask2former-swin-large-mapillary-vistas-semantic/snapshots/4772b6bf101d91f2534c106dc524d906aeb3c68a")
+        self.feature_extractor = AutoImageProcessor.from_pretrained("facebook/mask2former-swin-large-mapillary-vistas-semantic")
         self.model = Mask2FormerForUniversalSegmentation.from_pretrained("facebook/mask2former-swin-large-mapillary-vistas-semantic").cuda()
+
+        # self.feature_extractor = AutoImageProcessor.from_pretrained("/home/automan-apollo/.cache/huggingface/hub/models--facebook--mask2former-swin-large-mapillary-vistas-semantic/snapshots/4772b6bf101d91f2534c106dc524d906aeb3c68a")
+        # self.model = Mask2FormerForUniversalSegmentation.from_pretrained("facebook/mask2former-swin-large-mapillary-vistas-semantic").cuda()
 
         self.feature_extractor.do_random_crop = False
         self.model.eval()
