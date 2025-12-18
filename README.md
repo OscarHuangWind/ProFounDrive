@@ -42,17 +42,17 @@ An overview of the framework of our ProFounDrive.
 ![Demo](./asset/argoverse_speedup_720.gif)
 
 ### Carla CoR Cases (Jaywalker and Drive into Gas station)
-![Demo](./asset/carla_cor.gif)
+<img src="./asset/carla_cor.gif" width="50%">
 
 ### Campus Post-Deployment Daily Driving
-![Demo](./asset/realworld_campus_borrow_lane.gif)
+<img src="./asset/realworld_campus_borrow_lane.gif" width="50%">
 
 An overview of the capability of our proposed OpenREAD, a vision-language model tailored for autonomous driving by reinforcement learning with GRPO. Besides the trajectory planning, our OpenREAD is also capable of providing reasoning-enhanced response for open-ended scenario understanding, action analysis, *etc*.
 
 ## 🦙 Data & Model
 Our ProFounDrive is built upon the [MobileVLM V2](https://github.com/Meituan-AutoML/MobileVLM) and [GPT](https://huggingface.co/openai-community/gpt2-xl), and finetuned on a mixture of datasets including LingoQA, DRAMA, and Carla datasets. Our ProFounDrive is now available at [huggingface](https://huggingface.co/Oscar-Huang/ProFounDrive-MobileVLM). Enjoy playing with it!
 
-<image src="./asset/town03_round_traffic1.png"/>
+<image src="./asset/town03_round_traffic1.png" width="600"/>
 
 To follow the continual learning protocol, we collected diverse route data from CARLA using only high-quality demonstrations and categorized them into three domains: urban, highway, and rural. For the convenience of reproducing ProFounDrive, we also provide the minimal dataset required for training and evaluating the proposed CORL. All datasets are available [here](https://huggingface.co/Oscar-Huang/CarlaCORL).
 
