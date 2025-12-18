@@ -20,10 +20,10 @@ Stanford University, <sup>4</sup>
 
 <table>
 <tr>
-  <td><img src="./asset/ntu_v1.jpg" width="200" height="35"></td>
-  <td><img src="./asset/harvard.png" width="180" height="50"></td>
-  <td><img src="./asset/nvidia.svg" width="150" height="50"></td>
-  <td><img src="./asset/stanford.png" width="150" height="50"></td>
+  <td><img src="./asset/ntu_v1.jpg" height="35"></td>
+  <td><img src="./asset/harvard.png" height="50"></td>
+  <td><img src="./asset/nvidia.svg"height="50"></td>
+  <td><img src="./asset/stanford.png"height="50"></td>
 </tr>
 </table>
 
