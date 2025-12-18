@@ -171,7 +171,7 @@ class Engine(object):
             dont_log_wandb = self.config.dont_log_wandb
             wandb_mode = "online" if not dont_log_wandb else "disabled"
 
-            wandb_name = self.task_name[task_id] + '_' + self.config.prompt_name + '_' + str(self.config.encoder) + '_' + str(self.config.decoder) + '_mask2former_batch' + str(self.args.batch_size) + '_query16_' + str(self.args.lr_max) + '_' + str(self.args.lr_prompt_max) + '_' + self.task_name[0] + '_' + self.task_name[1] + '_' + self.task_name[2]
+            wandb_name = self.task_name[task_id] + '_' + self.config.prompt_name + '_' + str(self.config.encoder) + '_' + str(self.config.decoder) + '_seed' + str(self.args.seed) + '_' + str(self.config.image_type) + '_batch' + str(self.args.batch_size) + '_query16_' + str(self.args.lr_max) + '_' + str(self.args.lr_prompt_max) + '_' + self.task_name[0] + '_' + self.task_name[1] + '_' + self.task_name[2]
             wandb.init(
             project = self.config.project,
             group = self.config.wandb_group,
@@ -307,7 +307,7 @@ class Engine(object):
                 epoch = 0
                 output_dir = None
                 folder_name = self.config.prompt_name + '_' + self.config.encoder\
-                                    + '_' + self.config.decoder + '_seed' + str(self.args.seed) + '_' + str(now.year) + str(now.month) + str(now.day) + str(now.hour) + str(now.minute) + str(now.second)
+                                    + '_' + self.config.decoder + '_seed' + str(self.args.seed) + + '_' + str(self.config.image_type) + '_' + str(now.year) + str(now.month) + str(now.day) + str(now.hour) + str(now.minute) + str(now.second)
                 output_dir = os.path.join(self.args.output_dir, folder_name)
                 os.makedirs(output_dir, exist_ok=True)
                 print('output directory is:', output_dir)

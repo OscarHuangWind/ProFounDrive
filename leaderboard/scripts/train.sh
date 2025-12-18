@@ -21,7 +21,7 @@ export REPETITIONS=1
 
 MODE="train" #"eval"
 BATCH=32
-EPOCHS="70 50 50"
+EPOCHS="50 30 30" #"70 50 50"
 DATASET="min-3-domain"
 LEARNING_MODE="Split-sequential"
 PRETRAIN="scratch" # "pretrain"

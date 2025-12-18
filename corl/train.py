@@ -96,7 +96,7 @@ def main():
     parser.add_argument('--prompt_freeze', default='prompt_adapter', type=str, help='freeze prompt adapter')
 
     args = parser.parse_args()
-    args.task_seq = ['town07', 'town04', 'town03']
+    args.task_seq = ['rural', 'highway', 'urban']
 
     # Configure config
     config = GlobalConfig(root_dir=args.data_path, setting=args.setting)
