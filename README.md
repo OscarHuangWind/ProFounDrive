@@ -51,7 +51,7 @@ An overview of the capability of our proposed OpenREAD, a vision-language model 
 ## 🦙 Data & Model
 Our ProFounDrive is built upon the [MobileVLM V2](https://github.com/Meituan-AutoML/MobileVLM) and [GPT](https://huggingface.co/openai-community/gpt2-xl), and finetuned on a mixture of datasets including LingoQA, DRAMA, and Carla datasets. Our ProFounDrive is now available at [huggingface](https://huggingface.co/Oscar-Huang/ProFounDrive-MobileVLM). Enjoy playing with it!
 
-<image src="./asset/town03_round_traffic1.png" width="600"/>
+<image src="./asset/town03_round_traffic1.png" width="30%"/>
 
 To follow the continual learning protocol, we collected diverse route data from CARLA using only high-quality demonstrations and categorized them into three domains: urban, highway, and rural. For the convenience of reproducing ProFounDrive, we also provide the minimal dataset required for training and evaluating the proposed CORL. All datasets are available [here](https://huggingface.co/Oscar-Huang/CarlaCORL).
 
