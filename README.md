@@ -31,21 +31,20 @@ Stanford University, <sup>4</sup>
 
 †Corresponding Author
 
-<image src="./asset/blue_print_v8.png" width="720" /><br>
+<image src="./asset/blue_print_v8.png" width="70%" /><br>
 An overview of the framework of our ProFounDrive.
 </div>
 
 ## ✨Capabilities
 
 ### Argoverse 2
-
-![Demo](./asset/argoverse_speedup_720.gif)
+<img src="./asset/argoverse_speedup_720.gif" width="40%">
 
 ### Carla CoR Cases (Jaywalker and Drive into Gas station)
-<img src="./asset/carla_cor.gif" width="50%">
+<img src="./asset/carla_cor.gif" width="40%">
 
 ### Campus Post-Deployment Daily Driving
-<img src="./asset/realworld_campus_borrow_lane.gif" width="50%">
+<img src="./asset/realworld_campus_borrow_lane.gif" width="40%">
 
 An overview of the capability of our proposed OpenREAD, a vision-language model tailored for autonomous driving by reinforcement learning with GRPO. Besides the trajectory planning, our OpenREAD is also capable of providing reasoning-enhanced response for open-ended scenario understanding, action analysis, *etc*.
 
