@@ -115,7 +115,7 @@ data
 ├── carlacorl
 │   ├── urban
 │   │   │── weather-0
-│   │   │   │── train
+│   │   │   │── data(train&test)
 │   │   │   │     └── routes
 │   │   │   │           │── rgb(multi-view)
 │   │   │   │           │── action
