@@ -31,7 +31,7 @@ Stanford University, <sup>4</sup>
 
 †Corresponding Author
 
-<image src="./asset/blue_print_v8.png"/><br>
+<image src="./asset/blue_print_v8.png" width="720" /><br>
 An overview of the framework of our ProFounDrive.
 </div>
 
