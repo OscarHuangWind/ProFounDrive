@@ -38,10 +38,10 @@ An overview of the framework of our ProFounDrive.
 ## ✨Capabilities
 
 ### Argoverse 2
-<img src="./asset/argoverse_speedup_720.gif" width="40%">
+<img src="./asset/argoverse_speedup_720.gif" width="60%">
 
 ### Carla CoR Cases (Jaywalker and Drive into Gas station)
-<img src="./asset/carla_cor.gif" width="40%">
+<img src="./asset/carla_cor.gif" width="60%">
 
 ### Campus Post-Deployment Daily Driving
 <img src="./asset/realworld_campus_borrow_lane.gif" width="40%">
