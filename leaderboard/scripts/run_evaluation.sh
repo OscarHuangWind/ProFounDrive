@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #export CARLA_ROOT=carla
-export CARLA_ROOT=${1:-/home/oscar/Dropbox/InterFuser/carla}
+export CARLA_ROOT=${1:-/home/automan-apollo/Dropbox/InterFuser/carla}
 export CARLA_SERVER=${CARLA_ROOT}/CarlaUE4.sh
 export PYTHONPATH=${CARLA_ROOT}/PythonAPI:$PYTHONPATH
 export PYTHONPATH=${CARLA_ROOT}/PythonAPI/carla:$PYTHONPATH
@@ -23,11 +23,11 @@ export REPETITIONS=1 # multiple evaluation runs
 
 export TEAM_AGENT=${SRC_ROOT}/corl/carla_evaluate/corl_agent.py # agent
 export TEAM_CONFIG=${SRC_ROOT}/corl/corl_config.py
-export CHECKPOINT_ENDPOINT=${SRC_ROOT}/results/corl_result_urban_longtail.json # results file
+export CHECKPOINT_ENDPOINT=${SRC_ROOT}/results/corl_result_highway_longtail.json # results file
 export SCENARIOS=${SRC_ROOT}/leaderboard/data/scenarios/town03_all_scenarios.json
 #export ROUTES=${SRC_ROOT}/leaderboard/data/42routes/42routes.xml #validation_routes/routes_town04_sample.xml
-#export ROUTES=${SRC_ROOT}/leaderboard/data/validation_routes/routes_town03_short.xml
-export ROUTES=${SRC_ROOT}/leaderboard/data/longtail_routes/routes_town03_longtail.xml
+#export ROUTES=${SRC_ROOT}/leaderboard/data/validation_routes/routes_town03_longtail.xml
+export ROUTES=${SRC_ROOT}/leaderboard/data/longtail_routes/routes_town04_longtail.xml
 export SAVE_PATH=${SRC_ROOT}/eval_data # path for saving episodes while evaluating
 export RESUME=False #True
 

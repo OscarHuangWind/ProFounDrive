@@ -307,7 +307,7 @@ class Engine(object):
                 epoch = 0
                 output_dir = None
                 folder_name = self.config.prompt_name + '_' + self.config.encoder\
-                                    + '_' + self.config.decoder + '_seed' + str(self.args.seed) + + '_' + str(self.config.image_type) + '_' + str(now.year) + str(now.month) + str(now.day) + str(now.hour) + str(now.minute) + str(now.second)
+                                    + '_' + self.config.decoder + '_seed' + str(self.args.seed) + '_' + str(self.config.image_type) + '_' + str(now.year) + str(now.month) + str(now.day) + str(now.hour) + str(now.minute) + str(now.second)
                 output_dir = os.path.join(self.args.output_dir, folder_name)
                 os.makedirs(output_dir, exist_ok=True)
                 print('output directory is:', output_dir)

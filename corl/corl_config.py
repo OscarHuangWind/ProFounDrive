@@ -194,7 +194,8 @@ class GlobalConfig:
                     continue
                 root_files = os.listdir(os.path.join(self.root_dir, town)) #Town folders
                 for file in root_files:
-                    if (file.find('weather-minimal') == -1):
+                    # if (file.find('weather-minimal') == -1):
+                    if (file.find('weather-debug') == -1):
                         continue
                     subroot_files = os.listdir(os.path.join(self.root_dir, town, file))
                     for subfile in subroot_files:

@@ -800,7 +800,6 @@ class InterfuserAgent(autonomous_agent.AutonomousAgent):
         self.prev_action = np.array([throttle, brake, steer]) #action
 
         total_time = time.time() - start_time
-        print('One step time:', total_time)
 
         ##### Rendering ####
         self_car_map = render_self_car(
