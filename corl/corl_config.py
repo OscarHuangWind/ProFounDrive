@@ -9,8 +9,8 @@ class GlobalConfig:
     num_tasks = 3 #number of tasks, 1 for joint training
     task_id = 3 #task id for close-loop evaluation
     device = 'cuda:0'
-    # image_type = 'segmentation'
-    image_type = 'rgb'
+    image_type = 'segmentation'
+    # image_type = 'rgb'
     label = 'path_planning'
     decision = 'dual' # longitudinal and lateral
     
@@ -87,7 +87,8 @@ class GlobalConfig:
     dropout = 0.1
     
     # model_path = 'to be filled in'
-    model_path = '/root/oscar_projects/checkpoints/ProFounDrive-MobileVLM/town03_task3_final_checkpoint.pth' #
+    # MobileVLM-based ProFounDrive for Evaluation
+    model_path = '/home/automan-apollo/Dropbox/seg_global_complex_language/drive_ViT-CLIP_MobileLLaMA_seed3407_fixlabelbug_fiximagebug_drama_poolingtoken_mobilevlm_coretemplate_mask2former_global_batch16_query16_town07_town04_town03_0.001_0.005_705050_10prompt_2024941462/town03_task3_final_checkpoint.pth' #
 
     ## wandb parameters
     dont_log_wandb = False
@@ -148,11 +149,10 @@ class GlobalConfig:
             self.val_towns = self.train_towns
             self.train_data, self.val_data = [], []
             for town in self.train_towns:
-                if ((town.find('town03') == -1) and (town.find('town04') == -1) and (town.find('town07') == -1)):  #We don't train on 05 and 02 to reserve them as test towns
+                if ((town.find('urban') == -1) and (town.find('highway') == -1) and (town.find('rural') == -1)):  #We don't train on 05 and 02 to reserve them as test towns
                         continue
                 root_files = os.listdir(os.path.join(self.root_dir, town)) #Town folders
                 for file in root_files:
-                    # if ((file.find('weather-0') == -1) and (file.find('weather-3') == -1) and (file.find('weather-6') == -1)):
                     if file.find('weather-0') == -1:
                         continue
                     subroot_files = os.listdir(os.path.join(self.root_dir, town, file))
@@ -164,11 +164,10 @@ class GlobalConfig:
                             self.train_data.append(os.path.join(self.root_dir, town, file, subfile))
 
             for town in self.val_towns:
-                if ((town.find('town03') == -1) and (town.find('town04') == -1) and (town.find('town07') == -1)):  #We don't train on 05 and 02 to reserve them as test towns
+                if ((town.find('urban') == -1) and (town.find('highway') == -1) and (town.find('rural') == -1)):  #We don't train on 05 and 02 to reserve them as test towns
                         continue
                 root_files = os.listdir(os.path.join(self.root_dir, town)) #Town folders
                 for file in root_files:
-                    # if ((file.find('weather-0') == -1) and (file.find('weather-3') == -1) and (file.find('weather-6') == -1)):
                     if file.find('weather-0') == -1:
                         continue
                     subroot_files = os.listdir(os.path.join(self.root_dir, town, file))
@@ -187,14 +186,11 @@ class GlobalConfig:
             self.val_towns = self.train_towns
             self.train_data, self.val_data = [], []
             for town in self.train_towns:
-                if ((town.find('town03') == -1) and (town.find('town04') == -1) and (town.find('town07') == -1)):  #We don't train on 05 and 02 to reserve them as test towns
+                if ((town.find('urban') == -1) and (town.find('highway') == -1) and (town.find('rural') == -1)):  #We don't train on 05 and 02 to reserve them as test towns
                     continue
-                # if ((town.find('town03') == -1)):  #We don't train on 05 and 02 to reserve them as test towns
-                #     continue
                 root_files = os.listdir(os.path.join(self.root_dir, town)) #Town folders
                 for file in root_files:
                     if (file.find('weather-minimal') == -1):
-                    # if (file.find('weather-debug') == -1):
                         continue
                     subroot_files = os.listdir(os.path.join(self.root_dir, town, file))
                     for subfile in subroot_files:
@@ -205,10 +201,8 @@ class GlobalConfig:
                             self.train_data.append(os.path.join(self.root_dir, town, file, subfile))
                             
             for town in self.val_towns:
-                if ((town.find('town03') == -1) and (town.find('town04') == -1) and (town.find('town07') == -1)):  #We don't train on 05 and 02 to reserve them as test towns
+                if ((town.find('urban') == -1) and (town.find('highway') == -1) and (town.find('rural') == -1)):  #We don't train on 05 and 02 to reserve them as test towns
                     continue
-                # if ((town.find('town03') == -1)):  #We don't train on 05 and 02 to reserve them as test towns
-                #     continue
                 root_files = os.listdir(os.path.join(self.root_dir, town)) #Town folders
                 for file in root_files:
                     # if (file.find('weather-minimal') == -1):

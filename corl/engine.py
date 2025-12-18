@@ -158,7 +158,7 @@ class Engine(object):
         speed_acc_matrix = np.zeros((self.config.num_tasks, self.config.num_tasks))
         now = datetime.datetime.now()
 
-        wandb.login(key="8726d9823ea1bc5190c32369f254d61eab02a17b")
+        wandb.login(key=self.args.wandb)
 
         for task_id in np.arange(self.config.start_task, self.config.num_tasks):
 

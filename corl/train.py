@@ -78,6 +78,7 @@ def main():
     parser.add_argument('--num_workers', default=8, type=int)
     parser.add_argument('--pin-mem', action='store_true',
                         help='Pin CPU memory in DataLoader for more efficient (sometimes) transfer to GPU.')
+    parser.add_argument('--wandb', default='', type=str, help='the wandb key for login')
 
     # MobileVLM parameters
     parser.add_argument('--vlm_freeze', default='prompt_vlm', type=str, help='freeze entire vlm model if MobileVLM-based ProFounDrive')

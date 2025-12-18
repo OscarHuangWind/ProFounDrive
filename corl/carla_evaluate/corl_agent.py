@@ -346,8 +346,6 @@ class InterfuserAgent(autonomous_agent.AutonomousAgent):
                 )
             )
 
-            # print(string)
-
             self.save_path = pathlib.Path(SAVE_PATH) / string
             self.save_path.mkdir(parents=True, exist_ok=False)
             (self.save_path / "meta").mkdir(parents=True, exist_ok=False)
@@ -1535,6 +1533,6 @@ class InterfuserAgent(autonomous_agent.AutonomousAgent):
         else:
             self._turn_controller._K_P = 1.4
             
-        next_node = trajectory_refined[self.control_point,:] #1 for town07
+        next_node = trajectory_refined[self.control_point,:]
         
         return next_node, trajectory_refined
