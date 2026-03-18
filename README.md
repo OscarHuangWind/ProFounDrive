@@ -46,8 +46,6 @@ An overview of the framework of our ProFounDrive.
 ### Campus Post-Deployment Daily Driving
 <img src="./asset/realworld_campus_borrow_lane.gif" width="40%">
 
-An overview of the capability of our proposed OpenREAD, a vision-language model tailored for autonomous driving by reinforcement learning with GRPO. Besides the trajectory planning, our OpenREAD is also capable of providing reasoning-enhanced response for open-ended scenario understanding, action analysis, *etc*.
-
 ## 🦙 Data & Model
 Our ProFounDrive is built upon the [MobileVLM V2](https://github.com/Meituan-AutoML/MobileVLM) and [GPT](https://huggingface.co/openai-community/gpt2-xl), and finetuned on a mixture of datasets including LingoQA, DRAMA, and Carla datasets. Our ProFounDrive is now available at [huggingface](https://huggingface.co/Oscar-Huang/ProFounDrive-MobileVLM). Enjoy playing with it!
 
@@ -246,7 +244,7 @@ We appreciate the awesome open-source project of [MobileVLM](https://arxiv.org/p
 
 ## ✏️ Citation
 
-If you find OpenREAD is useful in your research or applications, please consider giving a star ⭐ and citing it with the following BibTeX:
+If you find ProFounDrive is useful in your research or applications, please consider giving a star ⭐ and citing it with the following BibTeX:
 
 ```
 @article{huang2025profoundrive,
